@@ -3,8 +3,8 @@
 
     <string name="app_name">Location Manager Viewer</string>
     <string name="title_activity_main">MainActivity</string>
-    <string name="title_section1">Coarse Location</string>
-    <string name="title_section2">Fine Location</string>
+    <string name="title_section1">GPS</string>
+    <string name="title_section2">WiFi</string>
     <string name="title_section3">Other</string>
     <string name="action_settings">Settings</string>
     <string name="title_activity_tabbed">Tabbed</string>

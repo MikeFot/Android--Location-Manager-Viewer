@@ -70,7 +70,7 @@ public class TabsAdapter extends FragmentPagerAdapter
 
     @Override
     public int getCount() {
-        Logger.i(TAG, "getCount: " + Integer.toString(count));
+//        Logger.i(TAG, "getCount: " + Integer.toString(count));
         return count;
     }
 
@@ -90,7 +90,7 @@ public class TabsAdapter extends FragmentPagerAdapter
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        Logger.i(TAG, "onPageScrolled: " + Integer.toString(position));
+//        Logger.i(TAG, "onPageScrolled: " + Integer.toString(position));
     }
 
     @Override
