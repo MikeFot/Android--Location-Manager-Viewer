@@ -1,7 +1,14 @@
 package com.michaelfotiadis.locationmanagerviewer.fragments;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,12 +18,31 @@ import android.widget.TextView;
 
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.michaelfotiadis.locationmanagerviewer.R;
-import com.michaelfotiadis.locationmanagerviewer.utils.GPSTracker;
+import com.michaelfotiadis.locationmanagerviewer.containers.CustomConstants;
+import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 public class FragmentOne extends ListFragment {
 
+	public class ResponseReceiver extends BroadcastReceiver {
+		private String TAG = "Response Receiver";
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Logger.d(TAG, "On Receiver Result");
+			if (intent.getAction().equalsIgnoreCase(
+					CustomConstants.Broadcasts.BROADCAST_1.getString())) {
+				Logger.d(TAG, "Network Status Changed");
+				populateDetails();
+			} else if  (intent.getAction().equalsIgnoreCase(
+					CustomConstants.Broadcasts.BROADCAST_2.getString())) {
+				Logger.d(TAG, "GPS Location Changed");
+				populateDetails();
+			}
+		}
+	}
+
 	private static final String ARG_POSITION = "position";
+
 
 	public static FragmentOne newInstance(int position) {
 		FragmentOne f = new FragmentOne();
@@ -26,109 +52,8 @@ public class FragmentOne extends ListFragment {
 		return f;
 	}
 
-	GPSTracker mGPSTracker;
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-
-		GPSTracker mGPSTracker = new GPSTracker(getActivity());
-		if (!mGPSTracker.isGPSEnabled()) {
-			mGPSTracker.showSettingsAlert();
-		}
-		super.onCreate(savedInstanceState);
-
-	}
-
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-
-
-		monitorUpdates();
-		super.onActivityCreated(savedInstanceState);
-	}
-
-	@Override
-	public void onResume() {
-		Logger.d(TAG, "onResume");
-
-		super.onResume();
-	}
-
-	@Override
-	public void onPause() {
-		Logger.d(TAG, "onPause");
-		mGPSTracker = null;
-		super.onPause();
-	}
-
-	private void monitorUpdates() {
-
-		new Thread() {
-			@Override
-			public void run() {
-				try {
-					while (!isInterrupted()) {
-						Thread.sleep(1000);
-						if (getActivity() != null) {
-							getActivity().runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									if (getActivity().isFinishing()) {
-										interrupt();
-									}
-									populateDetails();
-								}
-							});
-						}
-					}
-				} catch (InterruptedException e) {
-				}
-			}
-		}.start();
-	}
-
-	@Override
-	public View onCreateView(LayoutInflater inflater, ViewGroup container,
-			Bundle savedInstanceState) {
-
-		return inflater.inflate(R.layout.fragment_one, container, false);
-	}
-
-
-	private void populateDetails() {
-
-		
-		if (mGPSTracker == null) {
-			Logger.d(TAG, "Initialising the GPS Tracker");
-			mGPSTracker =  new GPSTracker(getActivity());
-		}
-
-		Logger.d(TAG, "Populating the Merge Adapter");
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, "Network Status");
-		appendSimpleText(adapter, "Network Supported: " + mGPSTracker.isNetworkEnabled());
-		appendSimpleText(adapter, "Location Supported: " + mGPSTracker.canGetLocation());
-		appendSimpleText(adapter, "GPS Enabled: " + mGPSTracker.isGPSEnabled());
-
-		appendHeader(adapter, "GPS Location");
-		appendSimpleText(adapter, "Latitude: " + mGPSTracker.getLatitude() + " degrees");
-		appendSimpleText(adapter, "Longitude: " + mGPSTracker.getLongitude()+ " degrees");
-		appendSimpleText(adapter, "Altitude: " + mGPSTracker.getAltitude() + " metres");;
-
-		appendHeader(adapter, "GPS Details");
-		appendSimpleText(adapter, "Accuracy: " + mGPSTracker.getAccuracy() + " metres");
-		appendSimpleText(adapter, "Bearing: " + mGPSTracker.getBearing() + " degrees");
-		appendSimpleText(adapter, "Speed: " + mGPSTracker.getSpeed() + " metres/second");
-		appendSimpleText(adapter, "Time: " + mGPSTracker.getTime() + " milliseconds");
-		
-		appendHeader(adapter, "NMEA");
-		appendSimpleText(adapter, mGPSTracker.getNMEA());
-		
-		getListView().setAdapter(adapter);
-	}
-
 	private final String TAG = "Fragment ONE";
+	private ResponseReceiver mResponseReceiver;
 
 	/**
 	 * Append a header to the MergeAdapter
@@ -148,7 +73,6 @@ public class FragmentOne extends ListFragment {
 		adapter.addView(layout);
 	}
 
-
 	/**
 	 * Append body text to the MergeAdapter
 	 * @param adapter
@@ -165,5 +89,133 @@ public class FragmentOne extends ListFragment {
 		final TextView tvData = (TextView) layout.findViewById(R.id.data);
 		tvData.setText(data);
 		adapter.addView(layout);
+	}
+
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+
+
+
+		
+		super.onActivityCreated(savedInstanceState);
+	}
+
+
+	@Override
+	public void onCreate(Bundle savedInstanceState) {
+
+		super.onCreate(savedInstanceState);
+
+	}
+
+	@Override
+	public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			Bundle savedInstanceState) {
+
+		return inflater.inflate(R.layout.fragment_one, container, false);
+	}
+
+	@Override
+	public void onPause() {
+		Logger.d(TAG, "onPause");
+		Singleton.getInstance().stopCollectingGPSData();
+		unregisterResponseReceivers();
+		super.onPause();
+	}
+
+	@Override
+	public void onResume() {
+		Logger.d(TAG, "onResume");
+		registerResponseReceiver();
+		// Call the Singleton to start the GPS Tracker
+		Singleton.getInstance().startCollectingGPSData();
+		populateDetails();
+		super.onResume();
+	}
+
+
+	private void populateDetails() {
+		
+		Logger.d(TAG, "Populating the Merge Adapter");
+		final MergeAdapter adapter = new MergeAdapter();
+
+		appendHeader(adapter, "Network Status");
+		appendSimpleText(adapter, "Cell Network Status: " + Singleton.getInstance().isCellNetworkEnabled());
+		appendSimpleText(adapter, "GPS Enabled: " + Singleton.getInstance().isGPSEnabled());
+		appendSimpleText(adapter, "Scanning for GPS: " + Singleton.getInstance().isGPSLocationSupported());
+
+		appendHeader(adapter, "GPS Location");
+		appendSimpleText(adapter, "Latitude: " + Singleton.getInstance().getGPSData().getLatitudeAsString());
+		appendSimpleText(adapter, "Longitude: " + Singleton.getInstance().getGPSData().getLongitudeAsString());
+		appendSimpleText(adapter, "Altitude: " + Singleton.getInstance().getGPSData().getAltitudeAsString());
+		
+		appendHeader(adapter, "GPS Details");
+		appendSimpleText(adapter, "Accuracy: " + Singleton.getInstance().getGPSData().getAccuracyAsString());
+		appendSimpleText(adapter, "Bearing: " + Singleton.getInstance().getGPSData().getBearingAsString());
+		appendSimpleText(adapter, "Speed: " + Singleton.getInstance().getGPSData().getSpeedAsString());
+		appendSimpleText(adapter, "UTC Time of Fix: " + Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
+		
+		appendHeader(adapter, "GPS Satellites");
+		appendSimpleText(adapter, "Max Satellites: " + Singleton.getInstance().getGPSData().getMaxSatellites());
+		appendSimpleText(adapter, "Event: " + Singleton.getInstance().getGPSData().getGPSEvent());
+		
+		
+		getListView().setAdapter(adapter);
+	}
+
+
+	private void registerResponseReceiver() {
+		Logger.d(TAG, "Registering Response Receiver");
+		IntentFilter intentFilter = new IntentFilter();
+		intentFilter.addAction(CustomConstants.Broadcasts.BROADCAST_1.getString());
+		intentFilter.addAction(CustomConstants.Broadcasts.BROADCAST_2.getString());
+
+		mResponseReceiver = new ResponseReceiver();
+		getActivity().registerReceiver(mResponseReceiver, intentFilter);
+	}
+
+	private void unregisterResponseReceivers() {
+		try {
+			getActivity().unregisterReceiver(mResponseReceiver);
+			Logger.d(TAG, "Response Receiver Unregistered Successfully");
+		} catch (Exception e) {
+			Logger.d(
+					TAG,
+					"Response Receiver Already Unregistered. Exception : "
+							+ e.getLocalizedMessage());
+		}
+	}
+	
+	/**
+	 * Function to show settings alert dialog
+	 * */
+	public void showSettingsAlert(){
+		AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
+		// Setting Dialog Title
+		alertDialog.setTitle("GPS settings");
+
+		// Setting Dialog Message
+		alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
+
+		// On pressing Settings button
+		alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog,int which) {
+				Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+				getActivity().startActivity(intent);
+				Singleton.getInstance().startCollectingGPSData();
+			}
+		});
+
+		// on pressing cancel button
+		alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+				Singleton.getInstance().startCollectingGPSData();
+			}
+		});
+
+		// Showing Alert Message
+		alertDialog.show();
 	}
 }
