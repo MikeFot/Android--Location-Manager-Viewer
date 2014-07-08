@@ -1,5 +1,7 @@
 package com.michaelfotiadis.locationmanagerviewer.datastore;
 
+import static android.provider.Settings.System.AIRPLANE_MODE_ON;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.location.GpsStatus;
@@ -8,9 +10,11 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.provider.Settings;
 
-import com.michaelfotiadis.locationmanagerviewer.containers.CustomConstants;
+import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyGPSData;
+import com.michaelfotiadis.locationmanagerviewer.containers.MyNetworkStatus;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 /**
@@ -23,6 +27,12 @@ import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 public class Singleton implements LocationListener, NmeaListener, GpsStatus.Listener {
 
 	private static volatile Singleton _instance = null;
+
+	// The minimum distance to change Updates in meters
+	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
+
+	// The minimum time between updates in milliseconds
+	private static final long MIN_TIME_BW_UPDATES = 500;
 
 	/**
 	 * 
@@ -59,22 +69,21 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	// **** GPS Fields
 	private MyGPSData mGPSData;
 
+	// **** Network Fields
+	private MyNetworkStatus mNetworkStatus;
+
 	/**
 	 * Singleton Constructor
 	 */
 	public Singleton() {
-
-		mGPSData = new MyGPSData();
+		setGPSData(new MyGPSData());
+		setNetworkStatus(new MyNetworkStatus());
 	}
 
-	public boolean isGPSLocationSupported() {
-		if (isCellNetworkEnabled() && isGPSEnabled()) {
-			return true;
-		}  else {
-			return false;
-		}
-	}
-
+	/**
+	 * 
+	 * @return Stored context
+	 */
 	public Context getContext() {
 		return mContext;
 	}
@@ -83,48 +92,56 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		return mGPSData;
 	}
 
-	public boolean isCellNetworkEnabled() {
-		return mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+	public MyNetworkStatus getNetworkStatus() {
+		return mNetworkStatus;
 	}
 
-	public boolean isGPSEnabled() {
-		return  mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-	}
-
-	public void setContext(Context mContext) {
-		Logger.d(TAG, "Setting Singleton Context " + mContext.getApplicationContext().getPackageName());
-		this.mContext = mContext.getApplicationContext();
-
-	}
-
-	public void setGPSData(MyGPSData gpsData) {
-		this.mGPSData = gpsData;
-	}
-
-	public void startCollectingGPSData() {
-		mLocationManager = (LocationManager) mContext	.getSystemService(Context.LOCATION_SERVICE);
-		mLocationManager.addGpsStatusListener(this);
-
-		requestGPSLocationUpdates();
-	}
-
-	public void stopCollectingGPSData() {
-		Logger.d(TAG, "Attempting to Stop GPS");
-		if(mLocationManager != null){
-			mLocationManager.removeUpdates(this);
+	/**
+	 * Modifies GPSData object and broadcasts the change
+	 */
+	public void notifyGPSDataChanged() {
+		if (mLocationManager != null) {
+			// Set the GPS Location according to the GPS Provider
+			mGPSData.setLocation(mLocationManager
+					.getLastKnownLocation(LocationManager.GPS_PROVIDER));
+			// Broadcast that data has changed
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_2.getString());
+			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
 		}
 	}
 
-	public void notifyNetworkDataChanged() {
+	/**
+	 * Modifies Network Status object and broadcasts the change
+	 */
+	public void notifyNetworkStateChanged() {
+		if (mLocationManager != null) {
+			mNetworkStatus.setGPSEnabled(mLocationManager.
+					isProviderEnabled(LocationManager.GPS_PROVIDER));
+
+			if (isAirplaneModeOn(mContext)) {
+				mNetworkStatus.setCellNetworkEnabled(false);
+			} else {
+				mNetworkStatus.setCellNetworkEnabled(mLocationManager.
+						isProviderEnabled(LocationManager.NETWORK_PROVIDER));
+			}
+			// Broadcast that data has changed
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_1.getString());
+			Logger.i(TAG, "Broadcasting Network State Changed");
+			mContext.sendBroadcast(broadcastIntent);
+		}
+	}
+
+	/**
+	 * Broadcasts that the NMEA buffer has changed
+	 */
+	public void notifyNMEAChanged() {
 		// Broadcast that data has changed
-		Intent broadcastIntent = new Intent(CustomConstants.Broadcasts.BROADCAST_1.getString());
-		Logger.i(TAG, "Broadcasting Scanning Status Started");
-		mContext.sendBroadcast(broadcastIntent);
+		Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_3.getString());
+		Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
 	}
 
 	@Override
 	public void onGpsStatusChanged(int event) {
-		Logger.d(TAG, "onGPSStatusChanged");
 		GpsStatus gpsStatus = mLocationManager.getGpsStatus(null);
 		switch (event) {
 		case GpsStatus.GPS_EVENT_STARTED:
@@ -143,63 +160,106 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			mGPSData.setGPSEvent("Satellite Detected");
 			break;
 		}
+		mGPSData.setSatellites(gpsStatus.getSatellites());
+		mGPSData.setMaxSatellites(gpsStatus.getMaxSatellites());
+		notifyGPSDataChanged();
+	}
 
-
-		if(gpsStatus != null) {
-			mGPSData.setSatellites(gpsStatus.getSatellites());
-			mGPSData.setMaxSatellites(gpsStatus.getMaxSatellites());
-		}
+	@Override
+	public void onLocationChanged(Location location) {
 		notifyGPSDataChanged();
 	}
 
 	@Override
 	public void onNmeaReceived(long timestamp, String nmea) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void onLocationChanged(Location location) {
-
-		// Set the GPS Location according to the GPS Provider
-		mGPSData.setLocation( mLocationManager
-				.getLastKnownLocation(LocationManager.GPS_PROVIDER));
-		notifyGPSDataChanged();
-	}
-
-	public void notifyGPSDataChanged() {
-		// Broadcast that data has changed
-		Intent broadcastIntent = new Intent(CustomConstants.Broadcasts.BROADCAST_2.getString());
-		Logger.i(TAG, "Broadcasting Scanning Status Started");
-		Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
-	}
-
-	@Override
-	public void onStatusChanged(String provider, int status, Bundle extras) {
-		notifyNetworkDataChanged();
-	}
-
-	@Override
-	public void onProviderEnabled(String provider) {
-		notifyNetworkDataChanged();
+		mGPSData.appendToNmea(nmea);
+		notifyNMEAChanged();
 	}
 
 	@Override
 	public void onProviderDisabled(String provider) {
-		notifyNetworkDataChanged();
+		notifyNetworkStateChanged();
 	}
 
-	// The minimum distance to change Updates in meters
-	private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0; 
+	@Override
+	public void onProviderEnabled(String provider) {
+		notifyNetworkStateChanged();
+	}
 
-	// The minimum time between updates in milliseconds
-	private static final long MIN_TIME_BW_UPDATES = 500;
+	@Override
+	public void onStatusChanged(String provider, int status, Bundle extras) {
+		notifyNetworkStateChanged();
+	}
 
+	/**
+	 * Notifies the location manager to request updates using predefined parameters
+	 */
 	public void requestGPSLocationUpdates() {
+		Logger.d(TAG, "Requesting GPS Updates with time between updates " + MIN_TIME_BW_UPDATES 
+				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
 		mLocationManager.requestLocationUpdates(
 				LocationManager.GPS_PROVIDER,
 				MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
 		Logger.d(TAG, "GPS Enabled");
 	}
+
+	public void requestNetworkUpdate() {
+		Logger.d(TAG, "Requesting Network Status Update");
+		if (mLocationManager != null) {
+			notifyNetworkStateChanged();
+		} else {
+			mLocationManager = (LocationManager) mContext	.getSystemService(Context.LOCATION_SERVICE);
+			notifyNetworkStateChanged();
+		}
+	}
+
+	public void setContext(Context mContext) {
+		Logger.d(TAG, "Setting Singleton Context " + mContext.getApplicationContext().getPackageName());
+		this.mContext = mContext.getApplicationContext();
+
+	} 
+
+	public void setGPSData(MyGPSData gpsData) {
+		this.mGPSData = gpsData;
+	}
+
+	public void setNetworkStatus(MyNetworkStatus networkStatus) {
+		this.mNetworkStatus = networkStatus;
+	}
+
+	public void startCollectingGPSData() {
+		Logger.d(TAG, "Attempting to Start GPS");
+		// Initialise the location manager for GPS collection
+		mLocationManager = (LocationManager) mContext	.getSystemService(Context.LOCATION_SERVICE);
+		mLocationManager.addGpsStatusListener(this);
+		mLocationManager.addNmeaListener(this);
+
+		requestGPSLocationUpdates();
+		requestNetworkUpdate();
+	}
+
+	public void stopCollectingGPSData() {
+		Logger.d(TAG, "Attempting to Stop GPS");
+		if(mLocationManager != null) {
+			mLocationManager.removeUpdates(this);
+			mLocationManager.removeGpsStatusListener(this);
+			mLocationManager.removeNmeaListener(this);
+		}
+	}
+
+	/**
+	 * Gets the state of Airplane Mode.
+	 * 
+	 * @param context
+	 * @return true if enabled.
+	 */
+	@SuppressWarnings("deprecation")
+	public static boolean isAirplaneModeOn(Context context) {
+		 ContentResolver contentResolver = context.getContentResolver();
+		  return Settings.System.getInt(contentResolver, AIRPLANE_MODE_ON, 0) != 0;
+	}
+
+
+
 }

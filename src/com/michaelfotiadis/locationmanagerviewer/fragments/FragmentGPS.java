@@ -1,14 +1,11 @@
 package com.michaelfotiadis.locationmanagerviewer.fragments;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,25 +15,26 @@ import android.widget.TextView;
 
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.michaelfotiadis.locationmanagerviewer.R;
-import com.michaelfotiadis.locationmanagerviewer.containers.CustomConstants;
+import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
-public class FragmentOne extends ListFragment {
+public class FragmentGPS extends ListFragment {
 
-	public class ResponseReceiver extends BroadcastReceiver {
-		private String TAG = "Response Receiver";
+	/**
+	 * Custom receiver for Network and GPS changes
+	 * @author Michael Fotiadis
+	 *
+	 */
+	private class ResponseReceiver extends BroadcastReceiver {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Logger.d(TAG, "On Receiver Result");
 			if (intent.getAction().equalsIgnoreCase(
-					CustomConstants.Broadcasts.BROADCAST_1.getString())) {
-				Logger.d(TAG, "Network Status Changed");
-				populateDetails();
+					MyConstants.Broadcasts.BROADCAST_1.getString())) {
+				populateMergeAdapter();
 			} else if  (intent.getAction().equalsIgnoreCase(
-					CustomConstants.Broadcasts.BROADCAST_2.getString())) {
-				Logger.d(TAG, "GPS Location Changed");
-				populateDetails();
+					MyConstants.Broadcasts.BROADCAST_2.getString())) {
+				populateMergeAdapter();
 			}
 		}
 	}
@@ -44,8 +42,8 @@ public class FragmentOne extends ListFragment {
 	private static final String ARG_POSITION = "position";
 
 
-	public static FragmentOne newInstance(int position) {
-		FragmentOne f = new FragmentOne();
+	public static FragmentGPS newInstance(int position) {
+		FragmentGPS f = new FragmentGPS();
 		Bundle b = new Bundle();
 		b.putInt(ARG_POSITION, position);
 		f.setArguments(b);
@@ -93,17 +91,12 @@ public class FragmentOne extends ListFragment {
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
-
-
-
-		
 		super.onActivityCreated(savedInstanceState);
 	}
 
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-
 		super.onCreate(savedInstanceState);
 
 	}
@@ -112,13 +105,13 @@ public class FragmentOne extends ListFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
-		return inflater.inflate(R.layout.fragment_one, container, false);
+		return inflater.inflate(R.layout.fragment_gps, container, false);
 	}
 
 	@Override
 	public void onPause() {
 		Logger.d(TAG, "onPause");
-		Singleton.getInstance().stopCollectingGPSData();
+
 		unregisterResponseReceivers();
 		super.onPause();
 	}
@@ -127,53 +120,67 @@ public class FragmentOne extends ListFragment {
 	public void onResume() {
 		Logger.d(TAG, "onResume");
 		registerResponseReceiver();
-		// Call the Singleton to start the GPS Tracker
-		Singleton.getInstance().startCollectingGPSData();
-		populateDetails();
+		populateMergeAdapter();
+		Singleton.getInstance().requestNetworkUpdate();
 		super.onResume();
 	}
 
+	/**
+	 * Adds data to the Merge Adapter
+	 */
+	private void populateMergeAdapter() {
 
-	private void populateDetails() {
-		
-		Logger.d(TAG, "Populating the Merge Adapter");
 		final MergeAdapter adapter = new MergeAdapter();
 
 		appendHeader(adapter, "Network Status");
-		appendSimpleText(adapter, "Cell Network Status: " + Singleton.getInstance().isCellNetworkEnabled());
-		appendSimpleText(adapter, "GPS Enabled: " + Singleton.getInstance().isGPSEnabled());
-		appendSimpleText(adapter, "Scanning for GPS: " + Singleton.getInstance().isGPSLocationSupported());
+		appendSimpleText(adapter, "Cell Network Adapter: " 
+				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
+		appendSimpleText(adapter, "GPS Adapter: " 
+				+ Singleton.getInstance().getNetworkStatus().isGPSEnabledAsString());
 
 		appendHeader(adapter, "GPS Location");
-		appendSimpleText(adapter, "Latitude: " + Singleton.getInstance().getGPSData().getLatitudeAsString());
-		appendSimpleText(adapter, "Longitude: " + Singleton.getInstance().getGPSData().getLongitudeAsString());
-		appendSimpleText(adapter, "Altitude: " + Singleton.getInstance().getGPSData().getAltitudeAsString());
-		
+		appendSimpleText(adapter, "Latitude: " 
+				+ Singleton.getInstance().getGPSData().getLatitudeAsString());
+		appendSimpleText(adapter, "Longitude: " 
+				+ Singleton.getInstance().getGPSData().getLongitudeAsString());
+		appendSimpleText(adapter, "Altitude: " 
+				+ Singleton.getInstance().getGPSData().getAltitudeAsString());
+
 		appendHeader(adapter, "GPS Details");
-		appendSimpleText(adapter, "Accuracy: " + Singleton.getInstance().getGPSData().getAccuracyAsString());
-		appendSimpleText(adapter, "Bearing: " + Singleton.getInstance().getGPSData().getBearingAsString());
-		appendSimpleText(adapter, "Speed: " + Singleton.getInstance().getGPSData().getSpeedAsString());
-		appendSimpleText(adapter, "UTC Time of Fix: " + Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
-		
+		appendSimpleText(adapter, "Accuracy: " 
+				+ Singleton.getInstance().getGPSData().getAccuracyAsString());
+		appendSimpleText(adapter, "Bearing: " 
+				+ Singleton.getInstance().getGPSData().getBearingAsString());
+		appendSimpleText(adapter, "Speed: " 
+				+ Singleton.getInstance().getGPSData().getSpeedAsString());
+		appendSimpleText(adapter, "UTC Time of Fix: "
+				+ Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
+
 		appendHeader(adapter, "GPS Satellites");
-		appendSimpleText(adapter, "Max Satellites: " + Singleton.getInstance().getGPSData().getMaxSatellites());
-		appendSimpleText(adapter, "Event: " + Singleton.getInstance().getGPSData().getGPSEvent());
-		
-		
+		appendSimpleText(adapter, "Satellites: " 
+				+ Singleton.getInstance().getGPSData().getSatellitesSize());
+		appendSimpleText(adapter, "Event: " 
+				+ Singleton.getInstance().getGPSData().getGPSEvent());
+
 		getListView().setAdapter(adapter);
 	}
 
-
+	/**
+	 * Registers a response receiver waiting for network change broadcasts or GPS broadcasts
+	 */
 	private void registerResponseReceiver() {
 		Logger.d(TAG, "Registering Response Receiver");
 		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(CustomConstants.Broadcasts.BROADCAST_1.getString());
-		intentFilter.addAction(CustomConstants.Broadcasts.BROADCAST_2.getString());
+		intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_1.getString());
+		intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_2.getString());
 
 		mResponseReceiver = new ResponseReceiver();
 		getActivity().registerReceiver(mResponseReceiver, intentFilter);
 	}
 
+	/**
+	 * Unregisters the response receiver
+	 */
 	private void unregisterResponseReceivers() {
 		try {
 			getActivity().unregisterReceiver(mResponseReceiver);
@@ -185,37 +192,6 @@ public class FragmentOne extends ListFragment {
 							+ e.getLocalizedMessage());
 		}
 	}
-	
-	/**
-	 * Function to show settings alert dialog
-	 * */
-	public void showSettingsAlert(){
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
 
-		// Setting Dialog Title
-		alertDialog.setTitle("GPS settings");
 
-		// Setting Dialog Message
-		alertDialog.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-		// On pressing Settings button
-		alertDialog.setPositiveButton("Settings", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog,int which) {
-				Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-				getActivity().startActivity(intent);
-				Singleton.getInstance().startCollectingGPSData();
-			}
-		});
-
-		// on pressing cancel button
-		alertDialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-				Singleton.getInstance().startCollectingGPSData();
-			}
-		});
-
-		// Showing Alert Message
-		alertDialog.show();
-	}
 }
