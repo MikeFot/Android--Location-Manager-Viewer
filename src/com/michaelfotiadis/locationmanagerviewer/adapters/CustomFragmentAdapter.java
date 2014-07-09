@@ -8,7 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.michaelfotiadis.locationmanagerviewer.containers.FragmentInfo;
+import com.michaelfotiadis.locationmanagerviewer.containers.MyFragmentInfo;
 /**
  * Fragment Adapter for handling Instantiated Fragments instead of Classes
  * @author Michael Fotiadis
@@ -17,13 +17,13 @@ import com.michaelfotiadis.locationmanagerviewer.containers.FragmentInfo;
 public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
 
 	private final List<String> mTitleList; // array of titles
-	private final List<FragmentInfo> mTabs; // array of custom FragmentInfo objects
+	private final List<MyFragmentInfo> mTabs; // array of custom FragmentInfo objects
 
 	private final Context mContext;
 
 	public CustomFragmentAdapter(FragmentActivity context) {
 		super(context.getSupportFragmentManager());
-		mTabs = new ArrayList<FragmentInfo>();
+		mTabs = new ArrayList<MyFragmentInfo>();
 		mTitleList = new ArrayList<String>();
 
 		mContext = context;
@@ -34,7 +34,7 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
 			return;
 		}
 
-		mTabs.add(new FragmentInfo(fragment));
+		mTabs.add(new MyFragmentInfo(fragment));
 		mTitleList.add(title);
 		notifyDataSetChanged();
 	}
@@ -46,7 +46,7 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
 
 	@Override
 	public Fragment getItem(int position) {
-		final FragmentInfo info = mTabs.get(position);
+		final MyFragmentInfo info = mTabs.get(position);
 
 		if (info.getFrag() == null) {
 			return Fragment.instantiate(mContext, info.getClss().getName(),

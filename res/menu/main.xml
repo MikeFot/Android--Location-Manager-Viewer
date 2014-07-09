@@ -4,14 +4,19 @@
 
     <item
         android:id="@+id/switch_scanning"
+        android:title=""
         app:actionLayout="@layout/switch_layout"
-        app:showAsAction="always"  
-        android:title=""/>
-    
+        app:showAsAction="always"/>
+
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
+        android:id="@+id/action_dialog"
+        android:showAsAction="withText"
+        android:title="@string/action_dialog"/>
+
+    <!-- Settings, should always be in the overflow -->
+    <item
+        android:id="@+id/action_show_map"
+        android:showAsAction="never"
+        android:title="@string/action_show_map"/>
 
 </menu>

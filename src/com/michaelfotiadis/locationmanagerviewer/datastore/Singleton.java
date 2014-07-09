@@ -13,7 +13,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
-import com.michaelfotiadis.locationmanagerviewer.containers.MyGPSData;
+import com.michaelfotiadis.locationmanagerviewer.containers.MyLocationData;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyNetworkStatus;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
@@ -50,6 +50,18 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	}
 
 	/**
+	 * Gets the state of Airplane Mode.
+	 * 
+	 * @param context
+	 * @return true if enabled.
+	 */
+	@SuppressWarnings("deprecation")
+	public static boolean isAirplaneModeOn(Context context) {
+		ContentResolver contentResolver = context.getContentResolver();
+		return Settings.System.getInt(contentResolver, AIRPLANE_MODE_ON, 0) != 0;
+	}
+
+	/**
 	 * 
 	 * @param instance
 	 *            Sets the Instance of the Singleton
@@ -65,9 +77,11 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 
 	// **** Location Manager Fields
 	private LocationManager mLocationManager;
+	// **** Location Data Fields
+	private MyLocationData mGPSLocationData;
+	private MyLocationData mNetworkLocationData;
 
-	// **** GPS Fields
-	private MyGPSData mGPSData;
+	private MyLocationData mPassiveLocationData;
 
 	// **** Network Fields
 	private MyNetworkStatus mNetworkStatus;
@@ -76,7 +90,11 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	 * Singleton Constructor
 	 */
 	public Singleton() {
-		setGPSData(new MyGPSData());
+		// Initialise the location data fields
+		setGPSData(new MyLocationData());
+		setNetworkData(new MyLocationData());
+		setPassiveData(new MyLocationData());
+
 		setNetworkStatus(new MyNetworkStatus());
 	}
 
@@ -88,12 +106,20 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		return mContext;
 	}
 
-	public MyGPSData getGPSData() {
-		return mGPSData;
+	public MyLocationData getGPSData() {
+		return mGPSLocationData;
+	}
+
+	public MyLocationData getNetworkData() {
+		return mNetworkLocationData;
 	}
 
 	public MyNetworkStatus getNetworkStatus() {
 		return mNetworkStatus;
+	}
+
+	public MyLocationData getPassiveData() {
+		return mPassiveLocationData;
 	}
 
 	/**
@@ -102,7 +128,7 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	public void notifyGPSDataChanged() {
 		if (mLocationManager != null) {
 			// Set the GPS Location according to the GPS Provider
-			mGPSData.setLocation(mLocationManager
+			mGPSLocationData.setLocation(mLocationManager
 					.getLastKnownLocation(LocationManager.GPS_PROVIDER));
 			// Broadcast that data has changed
 			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_2.getString());
@@ -110,6 +136,31 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		}
 	}
 
+	/**
+	 * 
+	 */
+	public void notifyNetworkDataChanged() {
+		if (mLocationManager != null) {
+			// Set the Network Location according to the Network Provider
+			mNetworkLocationData.setLocation(mLocationManager
+					.getLastKnownLocation(LocationManager.NETWORK_PROVIDER));
+			// Broadcast that data has changed
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_4.getString());
+			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
+		}
+	}
+
+	public void notifyPassiveDataChanged() {
+		if (mLocationManager != null) {
+			// Set the Network Location according to the Network Provider
+			mPassiveLocationData.setLocation(mLocationManager
+					.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+			// Broadcast that data has changed
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_5.getString());
+			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
+		}
+	}
+	
 	/**
 	 * Modifies Network Status object and broadcasts the change
 	 */
@@ -145,34 +196,39 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		GpsStatus gpsStatus = mLocationManager.getGpsStatus(null);
 		switch (event) {
 		case GpsStatus.GPS_EVENT_STARTED:
-			mGPSData.setGPSEvent("GPS Started");
+			mGPSLocationData.setGPSEvent("GPS Started");
 			break;
 
 		case GpsStatus.GPS_EVENT_STOPPED:
-			mGPSData.setGPSEvent("GPS Stopped");
+			mGPSLocationData.setGPSEvent("GPS Stopped");
 			break;
 
 		case GpsStatus.GPS_EVENT_FIRST_FIX:
-			mGPSData.setGPSEvent("GPS First Fix");
+			mGPSLocationData.setGPSEvent("GPS First Fix");
 			break;
 
 		case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
-			mGPSData.setGPSEvent("Satellite Detected");
+			mGPSLocationData.setGPSEvent("Satellite Detected");
+			break;
+		default:
+			mGPSLocationData.setGPSEvent("Inactive");
 			break;
 		}
-		mGPSData.setSatellites(gpsStatus.getSatellites());
-		mGPSData.setMaxSatellites(gpsStatus.getMaxSatellites());
+		mGPSLocationData.setSatellites(gpsStatus.getSatellites());
+		mGPSLocationData.setMaxSatellites(gpsStatus.getMaxSatellites());
 		notifyGPSDataChanged();
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
 		notifyGPSDataChanged();
+		notifyNetworkDataChanged();
+		notifyPassiveDataChanged();
 	}
 
 	@Override
 	public void onNmeaReceived(long timestamp, String nmea) {
-		mGPSData.appendToNmea(nmea);
+		mGPSLocationData.appendToNmea(nmea);
 		notifyNMEAChanged();
 	}
 
@@ -201,8 +257,21 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 				LocationManager.GPS_PROVIDER,
 				MIN_TIME_BW_UPDATES,
 				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-		Logger.d(TAG, "GPS Enabled");
+		Logger.d(TAG, "GPS Updates Enabled");
 	}
+
+	/**
+	 * Notifies the location manager to request updates using predefined parameters
+	 */
+	public void requestNetworkLocationUpdates() {
+		Logger.d(TAG, "Requesting WiFi Updates with time between updates " + MIN_TIME_BW_UPDATES 
+				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
+		mLocationManager.requestLocationUpdates(
+				LocationManager.NETWORK_PROVIDER,
+				MIN_TIME_BW_UPDATES,
+				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+		Logger.d(TAG, "Network Updates Enabled");
+	} 
 
 	public void requestNetworkUpdate() {
 		Logger.d(TAG, "Requesting Network Status Update");
@@ -214,50 +283,61 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		}
 	}
 
+	/**
+	 * Notifies the location manager to request updates using predefined parameters
+	 */
+	public void requestPassiveLocationUpdates() {
+		Logger.d(TAG, "Requesting Passive Updates with time between updates " + MIN_TIME_BW_UPDATES 
+				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
+		mLocationManager.requestLocationUpdates(
+				LocationManager.PASSIVE_PROVIDER,
+				MIN_TIME_BW_UPDATES,
+				MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+		Logger.d(TAG, "Passive Updates Enabled");
+	}
+
 	public void setContext(Context mContext) {
 		Logger.d(TAG, "Setting Singleton Context " + mContext.getApplicationContext().getPackageName());
 		this.mContext = mContext.getApplicationContext();
 
-	} 
+	}
 
-	public void setGPSData(MyGPSData gpsData) {
-		this.mGPSData = gpsData;
+	public void setGPSData(MyLocationData gpsData) {
+		this.mGPSLocationData = gpsData;
+	}
+
+	public void setNetworkData(MyLocationData mNetworkData) {
+		this.mNetworkLocationData = mNetworkData;
 	}
 
 	public void setNetworkStatus(MyNetworkStatus networkStatus) {
 		this.mNetworkStatus = networkStatus;
 	}
 
-	public void startCollectingGPSData() {
+	public void setPassiveData(MyLocationData mPassiveData) {
+		this.mPassiveLocationData = mPassiveData;
+	}
+
+	public void startCollectingLocationData() {
 		Logger.d(TAG, "Attempting to Start GPS");
 		// Initialise the location manager for GPS collection
 		mLocationManager = (LocationManager) mContext	.getSystemService(Context.LOCATION_SERVICE);
 		mLocationManager.addGpsStatusListener(this);
 		mLocationManager.addNmeaListener(this);
-
+		
 		requestGPSLocationUpdates();
+		requestNetworkLocationUpdates();
+		requestPassiveLocationUpdates();
 		requestNetworkUpdate();
 	}
-
-	public void stopCollectingGPSData() {
+	
+	public void stopCollectingLocationData() {
 		Logger.d(TAG, "Attempting to Stop GPS");
 		if(mLocationManager != null) {
 			mLocationManager.removeUpdates(this);
 			mLocationManager.removeGpsStatusListener(this);
 			mLocationManager.removeNmeaListener(this);
 		}
-	}
-
-	/**
-	 * Gets the state of Airplane Mode.
-	 * 
-	 * @param context
-	 * @return true if enabled.
-	 */
-	@SuppressWarnings("deprecation")
-	public static boolean isAirplaneModeOn(Context context) {
-		 ContentResolver contentResolver = context.getContentResolver();
-		  return Settings.System.getInt(contentResolver, AIRPLANE_MODE_ON, 0) != 0;
 	}
 
 

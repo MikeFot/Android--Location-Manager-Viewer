@@ -14,7 +14,8 @@ public class MyConstants {
 		BROADCAST_1("Brodacast_1"),
 		BROADCAST_2("Broadcast_2"),
 		BROADCAST_3("Broadcast_3"),
-		BROADCAST_4("Broadcast_4");
+		BROADCAST_4("Broadcast_4"), 
+		BROADCAST_5("Broadcast_5");
 
 		private String text;
 		Broadcasts(String description) {
@@ -46,7 +47,8 @@ public class MyConstants {
 
 	public enum Results {
 		RESULT_1("Result_1"),
-		RESULT_2("Result_2");
+		RESULT_2("Result_2"),
+		RESULT_3("Result_3");
 
 		private String text;
 		Results(String description) {
@@ -73,6 +75,23 @@ public class MyConstants {
 		}
 	}; 
 
+	public enum FragmentCode {
+		FRAGMENT_CODE_0(6000),
+		FRAGMENT_CODE_1(6001),
+		FRAGMENT_CODE_2(6002),
+		FRAGMENT_CODE_3(6003),
+		FRAGMENT_CODE_4(6004);
+
+		private int code;
+		FragmentCode(int number) {
+			code = number;
+		}
+
+		public int getCode() {
+			return code;
+		}
+	}; 
+	
 	public static final DecimalFormat df = new DecimalFormat("#.00");
 
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator");

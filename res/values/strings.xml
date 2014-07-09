@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Viewer</string>
+    <string name="app_name">Location Viewer</string>
     <string name="title_activity_main">Main Activity</string>
     <string name="title_section1">GPS</string>
     <string name="title_section2">NMEA</string>
-    <string name="title_section3">WiFi</string>
-    <string name="action_settings">Settings</string>
+    <string name="title_section3">Network</string>
+    <string name="title_section4">Passive</string>
+    <string name="action_show_map">Show on Map</string>
     <string name="menuitem_refresh">Menu Item Refresh</string>
+    <string name="action_dialog">More Information</string>
 
+    <!-- Message Dialogs -->
+  <string name="message_gps">GPS Provider: This provider determines location using satellites. 
+      Depending on conditions, this provider may take a while to return a location fix. </string>
+        <string name="message_network">Network Provider: This provider determines location based on availability of cell tower and WiFi access points. 
+            Results are retrieved by means of a network lookup. </string>
+        <string name="message_passive">Passive Provider: A special location provider for 
+            receiving locations without actually initiating a location fix.</string>
+        <string name="message_nmea">NMEA Sentences: The NMEA 0183 standard defines
+             sentences that are used to transmit data from GPS satellites.</string>
+  
+  
+  
 </resources>

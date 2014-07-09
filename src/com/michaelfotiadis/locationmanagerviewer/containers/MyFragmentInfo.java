@@ -7,7 +7,7 @@ import android.support.v4.app.Fragment;
  * @author Alexandros Schillings
  *
  */
-public final class FragmentInfo {
+public final class MyFragmentInfo {
     private final Class<?> clss;
     private final Bundle args;
     
@@ -15,13 +15,13 @@ public final class FragmentInfo {
     
     private final Fragment frag;
     
-    public FragmentInfo(Class<?> _class, Bundle _args) {
+    public MyFragmentInfo(Class<?> _class, Bundle _args) {
         clss = _class;
         args = _args;
         frag = null;
     }
     
-    public FragmentInfo(Fragment _frag) {
+    public MyFragmentInfo(Fragment _frag) {
         clss = null;
         args = null;
         frag = _frag;

@@ -1,9 +1,9 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/switch_layout"
     android:layout_width="fill_parent"
     android:layout_height="match_parent"
-    android:paddingTop="@dimen/actionbar_button_vertical_margin"
-    android:orientation="horizontal" >
+    android:orientation="horizontal"
+    android:paddingTop="@dimen/actionbar_button_vertical_margin" >
 
     <Switch
         android:id="@+id/switchForActionBar"
@@ -11,4 +11,4 @@
         android:layout_height="wrap_content"
         android:text="" />
 
-</RelativeLayout>
+</LinearLayout>

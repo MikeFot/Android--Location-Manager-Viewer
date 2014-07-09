@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.Fragment;
@@ -26,7 +27,8 @@ import com.michaelfotiadis.locationmanagerviewer.R;
 import com.michaelfotiadis.locationmanagerviewer.adapters.CustomFragmentAdapter;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
-import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentGPS;
+import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentMergeAdapter;
+import com.michaelfotiadis.locationmanagerviewer.utils.Dialogs;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 public class MainActivity extends ActionBarActivity implements
@@ -89,7 +91,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		Logger.d(TAG, "Setting Adapter");
 
 
-		new FragmentGPS();
+		new FragmentMergeAdapter();
 		//Fragment f = FragmentGPS.newInstance(0);
 
 		Tab tab;
@@ -97,21 +99,25 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		String tabTitle = "";
 
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			tab = getSupportActionBar().newTab();
 			switch (i) {
 			case 0:
 				tabTitle = getString(R.string.title_section1);
-				fragment = FragmentGPS.newInstance(i);
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode());
 				break;
 			case 1:
 				tabTitle = getString(R.string.title_section2);
 
-				fragment = FragmentGPS.newInstance(i);
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode());
 				break;
 			case 2:
 				tabTitle = getString(R.string.title_section3);
-				fragment = FragmentGPS.newInstance(i);
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode());
+				break;
+			case 3:
+				tabTitle = getString(R.string.title_section4);
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode());
 				break;
 			default:
 				throw new IllegalStateException("We should not be here!");
@@ -144,8 +150,12 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.action_settings:
-			Logger.d(TAG, "Action Settings Selected");
+		case R.id.action_dialog :
+			new Dialogs().makeDialog(MainActivity.this, 
+					generateTextForPosition(MainActivity.this.getSupportActionBar().getSelectedNavigationIndex()));
+			break;
+		case R.id.action_show_map:
+			showOnMap();
 			break;
 		default:
 			Logger.e(TAG, "Nothing Selected. How did we get here?");
@@ -154,12 +164,18 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		return super.onOptionsItemSelected(item);
 	}
 
+	private void showOnMap() {
+		String uri = "https://maps.google.com/maps?f=d";   
+		Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+		startActivity(i);
+	}
+	
 	@Override
 	protected void onPause() {
 		Logger.i(TAG, "onPause");
 
 		unregisterResponseReceivers();
-		Singleton.getInstance().stopCollectingGPSData();
+		Singleton.getInstance().stopCollectingLocationData();
 		super.onPause();
 	}
 
@@ -174,6 +190,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		mSwitchButton.setChecked(isScanning);
 		mSwitchButton.setOnCheckedChangeListener(this);
 		mSwitchButton.setChecked(isScanning);
+		
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -200,7 +217,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		Logger.i(TAG, "onStart");
 		super.onStart();
 	}
-
+	
 	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction fragmentTransaction) {
 		// Do nothing
@@ -250,7 +267,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 				Intent intent = new Intent(
 						Settings.ACTION_LOCATION_SOURCE_SETTINGS);
 				startActivity(intent);
-				Singleton.getInstance().startCollectingGPSData();
+				Singleton.getInstance().startCollectingLocationData();
 			}
 		});
 
@@ -260,7 +277,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 			@Override
 			public void onClick(DialogInterface dialog, int which) {
 				dialog.cancel();
-				Singleton.getInstance().startCollectingGPSData();
+				Singleton.getInstance().startCollectingLocationData();
 			}
 		});
 
@@ -274,10 +291,10 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	private void toggleScanning() {
 		if (isScanning) {
 			Logger.d(TAG, "Started Location Manager");
-			Singleton.getInstance().startCollectingGPSData();
+			Singleton.getInstance().startCollectingLocationData();
 		} else {
 			Logger.d(TAG, "Stopped Location Manager");
-			Singleton.getInstance().stopCollectingGPSData();
+			Singleton.getInstance().stopCollectingLocationData();
 		}
 	}
 
@@ -311,5 +328,30 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		// Change the selected page
 		getSupportActionBar().setSelectedNavigationItem(position);
 	}
+
+	public String generateTextForPosition (int position) {
+		
+		String message = "";
+		
+		 switch (position) {
+		 case 0:
+			 message = getString(R.string.message_gps);
+			 break;
+		 case 1:
+			 message = getString(R.string.message_nmea);
+			 break;
+		 case 2:
+			 message = getString(R.string.message_network);
+			 break;
+		 case 3:
+			 message = getString(R.string.message_passive);
+			 break;
+		default:
+			break;
+		 }
+		
+		return message;
+	}
+	
 
 }

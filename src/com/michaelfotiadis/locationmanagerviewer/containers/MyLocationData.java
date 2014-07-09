@@ -1,5 +1,6 @@
 package com.michaelfotiadis.locationmanagerviewer.containers;
 
+import java.util.Calendar;
 import java.util.Collection;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
@@ -9,7 +10,7 @@ import android.location.Location;
 
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
-public class MyGPSData {
+public class MyLocationData {
 
 	private Location location;
 	private CircularFifoQueue<String> nmeaBuffer;
@@ -24,11 +25,11 @@ public class MyGPSData {
 	private String mGPSEvent = "";
 
 
-	public MyGPSData() {
+	public MyLocationData() {
 		nmeaBuffer = new CircularFifoQueue<>(nmeaBufferSize);
 	}
 
-	public MyGPSData(Location location) {
+	public MyLocationData(Location location) {
 		setLocation(location);
 	}
 
@@ -69,6 +70,14 @@ public class MyGPSData {
 			return location.getBearing();
 		} else {
 			return 0;
+		}
+	}
+
+	public String getProvider() {
+		if (this.location != null) {
+			return location.getProvider();
+		} else {
+			return NOT_AVAILABLE;
 		}
 	}
 
@@ -127,14 +136,6 @@ public class MyGPSData {
 	}
 
 
-	public String getProvider() {
-		if (this.location != null) {
-			return location.getProvider();
-		} else {
-			return "N/A";
-		}
-	}
-
 
 	public Iterable<GpsSatellite> getSatellites() {
 		return satellites;
@@ -170,6 +171,26 @@ public class MyGPSData {
 			return location.getTime();
 		} else {
 			return 0;
+		}
+	}
+
+	public long getCurrentTime() {
+		return Calendar.getInstance().getTimeInMillis();
+	}
+
+	public String getCurrentTimeAsString() {
+		if (getUtcFixTime() > 0) {
+			return String.valueOf(getCurrentTime()) + " milliseconds";
+		} else {
+			return NOT_AVAILABLE;
+		}
+	}
+
+	public String getTimeSinceLastFixAsString() {
+		if (this.location != null && getUtcFixTime() > 0) {
+			return String.valueOf(getCurrentTime() - getUtcFixTime()) + " milliseconds";
+		} else {
+			return NOT_AVAILABLE;
 		}
 	}
 
