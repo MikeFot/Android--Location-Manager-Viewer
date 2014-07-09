@@ -8,9 +8,13 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
+import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
+import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,15 +23,14 @@ import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
 
 import com.michaelfotiadis.locationmanagerviewer.R;
-import com.michaelfotiadis.locationmanagerviewer.adapters.TabsAdapter;
+import com.michaelfotiadis.locationmanagerviewer.adapters.CustomFragmentAdapter;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentGPS;
-import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentNMEA;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 public class MainActivity extends ActionBarActivity implements
-		OnCheckedChangeListener {
+OnCheckedChangeListener, TabListener, OnPageChangeListener {
 
 	/**
 	 * Custom receiver for airplane mode changes
@@ -46,13 +49,8 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	private final String TAG = "Main Activity";
-	private TabsAdapter mAdapter;
-
 	private ViewPager mViewPager;
-	// private PagerSlidingTabStrip mTabStrip;
-
-	Switch mSwitchButton;
-
+	private Switch mSwitchButton;
 	private boolean isScanning = false;
 
 	ResponseReceiver mResponseReceiver;
@@ -83,29 +81,54 @@ public class MainActivity extends ActionBarActivity implements
 
 		// Set ViewPager
 		Logger.d(TAG, "Setting ViewPager");
+		final CustomFragmentAdapter cAdapter = new CustomFragmentAdapter(this);
 		mViewPager = (ViewPager) findViewById(R.id.pager);
-
+		mViewPager.setAdapter(cAdapter);
+		mViewPager.setOnPageChangeListener(this);
 		// Initialise the adapter
 		Logger.d(TAG, "Setting Adapter");
-		Bundle arguments = new Bundle(); // no arguments to pass yet
-		mAdapter = new TabsAdapter(this, mViewPager, arguments, 3);
 
-		// Add 2 tabs
-		Logger.d(TAG, "Setting First Tab");
-		Tab t = getSupportActionBar().newTab()
-				.setText(getString(R.string.title_section1))
-				.setTabListener(mAdapter);
-		mAdapter.addTab(t, FragmentGPS.class);
 
-		Logger.d(TAG, "Setting Second Tab");
-		t = getSupportActionBar().newTab()
-				.setText(getString(R.string.title_section2))
-				.setTabListener(mAdapter);
-		mAdapter.addTab(t, FragmentNMEA.class);
-		
+		new FragmentGPS();
+		//Fragment f = FragmentGPS.newInstance(0);
+
+		Tab tab;
+		Fragment fragment;
+		String tabTitle = "";
+
+
+		for (int i = 0; i < 3; i++) {
+			tab = getSupportActionBar().newTab();
+			switch (i) {
+			case 0:
+				tabTitle = getString(R.string.title_section1);
+				fragment = FragmentGPS.newInstance(i);
+				break;
+			case 1:
+				tabTitle = getString(R.string.title_section2);
+
+				fragment = FragmentGPS.newInstance(i);
+				break;
+			case 2:
+				tabTitle = getString(R.string.title_section3);
+				fragment = FragmentGPS.newInstance(i);
+				break;
+			default:
+				throw new IllegalStateException("We should not be here!");
+			}
+
+			tab.setText(tabTitle);
+			tab.setTabListener(this);
+
+			// Add the tab to the Action Bar
+			getSupportActionBar().addTab(tab);
+
+			// Add the fragment to the Adapter
+			cAdapter.add(fragment, tabTitle);
+		}
+
 		// Set the adapter to the ViewPager
-		Logger.d(TAG, "Setting ViewPager Adapter");
-		mViewPager.setAdapter(mAdapter);
+		mViewPager.getAdapter().notifyDataSetChanged();
 
 		Logger.d(TAG, "onCreate finished");
 	}
@@ -121,7 +144,12 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-
+		case R.id.action_settings:
+			Logger.d(TAG, "Action Settings Selected");
+			break;
+		default:
+			Logger.e(TAG, "Nothing Selected. How did we get here?");
+			break;
 		}
 		return super.onOptionsItemSelected(item);
 	}
@@ -138,6 +166,8 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	public boolean onPrepareOptionsMenu(Menu menu) {
 		Logger.i(TAG, "onPrepareOptionsMenu");
+
+		// Set up the Switch Button
 		MenuItem switchMenuItem = menu.getItem(0);
 		mSwitchButton = (Switch) switchMenuItem.getActionView().findViewById(
 				R.id.switchForActionBar);
@@ -158,6 +188,7 @@ public class MainActivity extends ActionBarActivity implements
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		if (mSwitchButton != null) {
+			// Store the state of the Action Bar Switch Button
 			outState.putBoolean(MyConstants.Payloads.PAYLOAD_1.toString(),
 					mSwitchButton.isChecked());
 		}
@@ -170,8 +201,24 @@ public class MainActivity extends ActionBarActivity implements
 		super.onStart();
 	}
 
+	@Override
+	public void onTabReselected(Tab tab, FragmentTransaction fragmentTransaction) {
+		// Do nothing
+	}
+
+	@Override
+	public void onTabSelected(Tab tab, FragmentTransaction fragmentTransaction) {
+		// Set the current item to the position of the tab
+		mViewPager.setCurrentItem(tab.getPosition());
+	}
+
+	@Override
+	public void onTabUnselected(Tab tab, FragmentTransaction fragmentTransaction) {
+		// Do nothing
+	}
+
 	/**
-	 * Registers a receiver for changes to Airplance Mode
+	 * Registers a receiver for changes to Airplane Mode
 	 */
 	private void registerResponseReceiver() {
 		Logger.d(TAG, "Registering Response Receiver");
@@ -193,27 +240,29 @@ public class MainActivity extends ActionBarActivity implements
 
 		// Setting Dialog Message
 		alertDialog
-				.setMessage("GPS is not enabled. Do you want to go to settings menu?");
+		.setMessage("GPS is not enabled. Do you want to go to settings menu?");
 
 		// On pressing Settings button
 		alertDialog.setPositiveButton("Settings",
 				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						Intent intent = new Intent(
-								Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-						startActivity(intent);
-						Singleton.getInstance().startCollectingGPSData();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent intent = new Intent(
+						Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+				startActivity(intent);
+				Singleton.getInstance().startCollectingGPSData();
+			}
+		});
 
 		// on pressing cancel button
 		alertDialog.setNegativeButton("Cancel",
 				new DialogInterface.OnClickListener() {
-					public void onClick(DialogInterface dialog, int which) {
-						dialog.cancel();
-						Singleton.getInstance().startCollectingGPSData();
-					}
-				});
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				dialog.cancel();
+				Singleton.getInstance().startCollectingGPSData();
+			}
+		});
 
 		// Showing Alert Message
 		alertDialog.show();
@@ -233,7 +282,7 @@ public class MainActivity extends ActionBarActivity implements
 	}
 
 	/**
-	 * Unregisters the airplane mode receiver
+	 * Unregisters the Airplane mode receiver
 	 */
 	private void unregisterResponseReceivers() {
 		try {
@@ -245,6 +294,22 @@ public class MainActivity extends ActionBarActivity implements
 					"Response Receiver Already Unregistered. Exception : "
 							+ e.getLocalizedMessage());
 		}
+	}
+
+	@Override
+	public void onPageScrollStateChanged(int state) {
+		// Do nothing
+	}
+
+	@Override
+	public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+		// Do nothing
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		// Change the selected page
+		getSupportActionBar().setSelectedNavigationItem(position);
 	}
 
 }

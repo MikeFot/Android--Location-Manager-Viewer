@@ -31,22 +31,25 @@ public class FragmentGPS extends ListFragment {
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equalsIgnoreCase(
 					MyConstants.Broadcasts.BROADCAST_1.getString())) {
-				populateMergeAdapter();
+				populateGPSMergeAdapter();
 			} else if  (intent.getAction().equalsIgnoreCase(
 					MyConstants.Broadcasts.BROADCAST_2.getString())) {
-				populateMergeAdapter();
-			}
+				populateGPSMergeAdapter();
+			} else if (intent.getAction().equalsIgnoreCase(
+					MyConstants.Broadcasts.BROADCAST_3.getString())) {
+				populateNMEAMergeAdapter();
+			} 
 		}
 	}
 
 	private static final String ARG_POSITION = "position";
-
 
 	public static FragmentGPS newInstance(int position) {
 		FragmentGPS f = new FragmentGPS();
 		Bundle b = new Bundle();
 		b.putInt(ARG_POSITION, position);
 		f.setArguments(b);
+
 		return f;
 	}
 
@@ -97,8 +100,14 @@ public class FragmentGPS extends ListFragment {
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
+		Logger.d(TAG, "CREATED FRAGMENT WITH " + getConstructorArguments());
+
 		super.onCreate(savedInstanceState);
 
+	}
+
+	public int getConstructorArguments() {
+		return getArguments().getInt(ARG_POSITION);
 	}
 
 	@Override
@@ -120,19 +129,34 @@ public class FragmentGPS extends ListFragment {
 	public void onResume() {
 		Logger.d(TAG, "onResume");
 		registerResponseReceiver();
-		populateMergeAdapter();
+		
+		switchConstructorArguments();
+		
 		Singleton.getInstance().requestNetworkUpdate();
 		super.onResume();
 	}
 
+	public void switchConstructorArguments() {
+		switch (getConstructorArguments()) {
+		case 0:
+			populateGPSMergeAdapter();
+			break;
+		case 1:
+			populateNMEAMergeAdapter();
+			break;
+		default:
+			populateGPSMergeAdapter();
+		}
+	}
+	
 	/**
 	 * Adds data to the Merge Adapter
 	 */
-	private void populateMergeAdapter() {
+	private void populateGPSMergeAdapter() {
 
 		final MergeAdapter adapter = new MergeAdapter();
 
-		appendHeader(adapter, "Network Status");
+		appendHeader(adapter, "Network Status " + getConstructorArguments());
 		appendSimpleText(adapter, "Cell Network Adapter: " 
 				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
 		appendSimpleText(adapter, "GPS Adapter: " 
@@ -171,8 +195,12 @@ public class FragmentGPS extends ListFragment {
 	private void registerResponseReceiver() {
 		Logger.d(TAG, "Registering Response Receiver");
 		IntentFilter intentFilter = new IntentFilter();
-		intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_1.getString());
-		intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_2.getString());
+		if (getConstructorArguments() == 0) {
+			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_1.getString());
+			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_2.getString());
+		} else if (getConstructorArguments() == 1) {
+			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_3.getString());
+		}
 
 		mResponseReceiver = new ResponseReceiver();
 		getActivity().registerReceiver(mResponseReceiver, intentFilter);
@@ -191,6 +219,19 @@ public class FragmentGPS extends ListFragment {
 					"Response Receiver Already Unregistered. Exception : "
 							+ e.getLocalizedMessage());
 		}
+	}
+
+	/**
+	 * Adds data to the Merge Adapter
+	 */
+	private void populateNMEAMergeAdapter() {
+
+		final MergeAdapter adapter = new MergeAdapter();
+
+		appendHeader(adapter, "NMEA Sentences " + getConstructorArguments());
+		appendSimpleText(adapter, Singleton.getInstance().getGPSData().getNmea());
+
+		getListView().setAdapter(adapter);
 	}
 
 
