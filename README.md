@@ -1,5 +1,6 @@
 #Location Manager Viewer for Android
 App which allows for the debugging of the Location Manager
+
 ##Description
 This application displays information on the Location Providers supported by Android Devices:
 - GPS Provider
