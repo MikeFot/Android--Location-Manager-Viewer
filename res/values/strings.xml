@@ -1,26 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
 
-    <string name="app_name">Location Viewer</string>
+    <string name="app_name">Location Debugger</string>
+    <string name="main_title">Debugger</string>
     <string name="title_activity_main">Main Activity</string>
     <string name="title_section1">GPS</string>
     <string name="title_section2">NMEA</string>
     <string name="title_section3">Network</string>
     <string name="title_section4">Passive</string>
-    <string name="action_show_map">Show on Map</string>
+    <string name="action_show_map">Show Location on Map</string>
     <string name="menuitem_refresh">Menu Item Refresh</string>
-    <string name="action_dialog">More Information</string>
+    <string name="action_dialog">Provider Information</string>
+    <string name="action_about">About</string>
+    <string name="action_settings">Device Settings</string>
+    <string name="provider_information">Provider Information</string>
+    <string name="ok">OK</string>
+    <string name="about">ABOUT</string>
 
-    <!-- Message Dialogs -->
-  <string name="message_gps">GPS Provider: This provider determines location using satellites. 
-      Depending on conditions, this provider may take a while to return a location fix. </string>
-        <string name="message_network">Network Provider: This provider determines location based on availability of cell tower and WiFi access points. 
-            Results are retrieved by means of a network lookup. </string>
-        <string name="message_passive">Passive Provider: A special location provider for 
-            receiving locations without actually initiating a location fix.</string>
-        <string name="message_nmea">NMEA Sentences: The NMEA 0183 standard defines
-             sentences that are used to transmit data from GPS satellites.</string>
-  
-  
-  
+    <!-- App Fields -->
+    <string name="version">1.0</string>
+    <string name="by_author">by Michael Fotiadis</string>
+    <string name="copyright">&#169; Michael Fotiadis</string>
+    <string name="repo_url" tools:ignore="TypographyDashes">https://github.com/MikeFot/Location-Manager-Viewer--Android</string>
+
+    <!-- Merge Adapter Values -->
+    <!-- Headers -->
+    <string name="header_network_status">"Network Status"</string>
+    <string name="header_location">"Location"</string>
+    <string name="header_details">"Details"</string>
+    <string name="header_other">"Other"</string>
+    <string name="header_nmea">"NMEA Sentences"</string>
+
+    <!-- Body -->
+    <string name="info_gps_adapter">"GPS Adapter     : "</string>
+    <string name="info_network_adapter">"Network Adapter : "</string>
+    <string name="info_passive_adapter">"Passive Adapter : "</string>
+    <string name="info_provider">"Provider        : "</string>
+    <string name="info_latitude">"Latitude        : "</string>
+    <string name="info_longitude">"Longitude       : "</string>
+    <string name="info_altitude">"Altitude        : "</string>
+    <string name="info_accuracy">"Accuracy        : "</string>
+    <string name="info_bearing">"Bearing         : "</string>
+    <string name="info_speed">"Speed           : "</string>
+    <string name="info_event">"Event           : "</string>
+    <string name="info_utc_time">"UTC Time of Fix : "</string>
+    
+
 </resources>

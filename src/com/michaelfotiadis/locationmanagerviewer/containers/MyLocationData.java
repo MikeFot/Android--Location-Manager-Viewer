@@ -19,11 +19,18 @@ public class MyLocationData {
 
 	private final String TAG = "GPS Data Object";
 
-	private final String NOT_AVAILABLE = "N/A";
+	
 
 	private int nmeaBufferSize = 50;
 	private String mGPSEvent = "";
 
+	// Unit Suffixes
+	private final String _not_available = "N/A";
+	private final String _meters_seconds = " m/sec";
+	private final String _milliseconds = " ms";
+	private final String _degrees = " deg";
+	private final String _metres = " m";
+	private final String _confidence = " (68% confidence)";
 
 	public MyLocationData() {
 		nmeaBuffer = new CircularFifoQueue<>(nmeaBufferSize);
@@ -31,6 +38,12 @@ public class MyLocationData {
 
 	public MyLocationData(Location location) {
 		setLocation(location);
+	}
+
+	public void appendToNmea(String nmea) {
+		if (!nmea.equals("")) {
+			nmeaBuffer.add(nmea);
+		}
 	}
 
 	public float getAccuracy() {
@@ -43,9 +56,9 @@ public class MyLocationData {
 
 	public String getAccuracyAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getAccuracy() + " metres (68% confidence)");
+			return String.valueOf(location.getAccuracy()) + _metres + _confidence;
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
@@ -59,9 +72,9 @@ public class MyLocationData {
 
 	public String getAltitudeAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getAltitude() + " metres");
+			return String.valueOf(location.getAltitude()) +_metres;
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
@@ -73,25 +86,31 @@ public class MyLocationData {
 		}
 	}
 
-	public String getProvider() {
+	public String getBearingAsString() {
 		if (this.location != null) {
-			return location.getProvider();
+			return String.valueOf(location.getBearing()) + _degrees;
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
-	public String getBearingAsString() {
-		if (this.location != null) {
-			return String.valueOf(location.getBearing() + " degrees");
+	public long getCurrentTime() {
+		return Calendar.getInstance().getTimeInMillis();
+	}
+
+
+	public String getCurrentTimeAsString() {
+		if (getUtcFixTime() > 0) {
+			return String.valueOf(getCurrentTime()) + _milliseconds;
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
 	public String getGPSEvent() {
 		return mGPSEvent;
 	}
+
 
 	public double getLatitude() {
 		if (this.location != null) {
@@ -101,18 +120,19 @@ public class MyLocationData {
 		}
 	}
 
+
+
 	public String getLatitudeAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getLatitude() + " degrees");
+			return String.valueOf(location.getLatitude()) + _degrees;
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
 	public Location getLocation() {
 		return location;
 	}
-
 
 	public double getLongitude() {
 		if (this.location != null) {
@@ -121,12 +141,12 @@ public class MyLocationData {
 			return 0;
 		}
 	}
-
+	
 	public String getLongitudeAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getLongitude() + " degrees");
+			return String.valueOf(location.getLongitude() + _degrees);
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
@@ -135,7 +155,17 @@ public class MyLocationData {
 		return maxSatellites;
 	}
 
+	public String getNmea() {
+		return nmeaBuffer.toString();
+	}
 
+	public String getProvider() {
+		if (this.location != null) {
+			return location.getProvider();
+		} else {
+			return _not_available;
+		}
+	}
 
 	public Iterable<GpsSatellite> getSatellites() {
 		return satellites;
@@ -148,7 +178,7 @@ public class MyLocationData {
 			return  0;
 		}
 	}
-
+	
 	public float getSpeed() {
 		if (this.location != null) {
 			return location.getSpeed();
@@ -157,12 +187,20 @@ public class MyLocationData {
 		}
 	}
 
-
 	public String getSpeedAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getSpeed() + " metres/seconds");
+			return String.valueOf(location.getSpeed() + _meters_seconds);
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
+		}
+	}
+
+
+	public String getTimeSinceLastFixAsString() {
+		if (this.location != null && getUtcFixTime() > 0) {
+			return String.valueOf(getCurrentTime() - getUtcFixTime()) + _milliseconds;
+		} else {
+			return _not_available;
 		}
 	}
 
@@ -173,32 +211,12 @@ public class MyLocationData {
 			return 0;
 		}
 	}
-
-	public long getCurrentTime() {
-		return Calendar.getInstance().getTimeInMillis();
-	}
-
-	public String getCurrentTimeAsString() {
-		if (getUtcFixTime() > 0) {
-			return String.valueOf(getCurrentTime()) + " milliseconds";
-		} else {
-			return NOT_AVAILABLE;
-		}
-	}
-
-	public String getTimeSinceLastFixAsString() {
-		if (this.location != null && getUtcFixTime() > 0) {
-			return String.valueOf(getCurrentTime() - getUtcFixTime()) + " milliseconds";
-		} else {
-			return NOT_AVAILABLE;
-		}
-	}
-
+	
 	public String getUtcFixTimeAsString() {
 		if (this.location != null) {
-			return String.valueOf(location.getTime() + " milliseconds");
+			return String.valueOf(location.getTime() + _milliseconds);
 		} else {
-			return NOT_AVAILABLE;
+			return _not_available;
 		}
 	}
 
@@ -206,6 +224,7 @@ public class MyLocationData {
 	public void setGPSEvent(String mGPSEvent) {
 		this.mGPSEvent = mGPSEvent;
 	}
+
 
 	public void setLocation(Location location) {
 		if (location != null) {
@@ -215,23 +234,11 @@ public class MyLocationData {
 		}
 	}
 
-
 	public void setMaxSatellites(int maxSatellites) {
 		this.maxSatellites = maxSatellites;
 	}
 
-
 	public void setSatellites(Iterable<GpsSatellite> satellites) {
 		this.satellites = satellites;
-	}
-
-	public String getNmea() {
-		return nmeaBuffer.toString();
-	}
-
-	public void appendToNmea(String nmea) {
-		if (!nmea.equals("")) {
-			nmeaBuffer.add(nmea);
-		}
 	}
 }

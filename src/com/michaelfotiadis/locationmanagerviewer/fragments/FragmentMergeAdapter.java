@@ -59,7 +59,7 @@ public class FragmentMergeAdapter extends ListFragment {
 		return f;
 	}
 
-	private final String TAG = "Fragment ONE";
+	private final String TAG = "Fragment Merge Adapter";
 	private ResponseReceiver mResponseReceiver;
 
 	/**
@@ -98,11 +98,15 @@ public class FragmentMergeAdapter extends ListFragment {
 		adapter.addView(layout);
 	}
 
+	public int getConstructorArguments() {
+		return getArguments().getInt(ARG_POSITION);
+	}
+
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 	}
-
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -110,10 +114,6 @@ public class FragmentMergeAdapter extends ListFragment {
 
 		super.onCreate(savedInstanceState);
 
-	}
-
-	public int getConstructorArguments() {
-		return getArguments().getInt(ARG_POSITION);
 	}
 
 	@Override
@@ -135,70 +135,48 @@ public class FragmentMergeAdapter extends ListFragment {
 	public void onResume() {
 		Logger.d(TAG, "onResume");
 		registerResponseReceiver();
-		
+
 		switchConstructorArguments();
-		
+
 		Singleton.getInstance().requestNetworkUpdate();
 		super.onResume();
 	}
 
-	public void switchConstructorArguments() {
-		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode()) {
-			populateGPSMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode()) {
-			populateGPSMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode()) {
-			populateNetworkMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode()) {
-			populatePassiveMergeAdapter();
-		} else {
-			// Do Nothing
-		}
-	}
-	
 	/**
 	 * Adds data to the Merge Adapter
 	 */
 	private void populateGPSMergeAdapter() {
 
 		final MergeAdapter adapter = new MergeAdapter();
-		
-		appendHeader(adapter, "Network Status " + getConstructorArguments());
-		appendSimpleText(adapter, "GPS Adapter: " 
+
+		appendHeader(adapter, getString(R.string.header_network_status));
+		appendSimpleText(adapter, getString(R.string.info_gps_adapter)  
 				+ Singleton.getInstance().getNetworkStatus().isGPSEnabledAsString());
-		appendSimpleText(adapter, "Provider: "
+		appendSimpleText(adapter, getString(R.string.info_provider)  
 				+ Singleton.getInstance().getGPSData().getProvider());
 
-		appendHeader(adapter, "GPS Location");
-		appendSimpleText(adapter, "Latitude: " 
+		appendHeader(adapter,getString(R.string.header_location));
+		appendSimpleText(adapter, getString(R.string.info_latitude)  
 				+ Singleton.getInstance().getGPSData().getLatitudeAsString());
-		appendSimpleText(adapter, "Longitude: " 
+		appendSimpleText(adapter, getString(R.string.info_longitude)   
 				+ Singleton.getInstance().getGPSData().getLongitudeAsString());
-		appendSimpleText(adapter, "Altitude: " 
+		appendSimpleText(adapter, getString(R.string.info_altitude)   
 				+ Singleton.getInstance().getGPSData().getAltitudeAsString());
 
-		appendHeader(adapter, "GPS Details");
-		appendSimpleText(adapter, "Accuracy: " 
+		appendHeader(adapter,getString(R.string.header_details));
+		appendSimpleText(adapter, getString(R.string.info_accuracy)  
 				+ Singleton.getInstance().getGPSData().getAccuracyAsString());
-		appendSimpleText(adapter, "Bearing: " 
+		appendSimpleText(adapter, getString(R.string.info_bearing)  
 				+ Singleton.getInstance().getGPSData().getBearingAsString());
-		appendSimpleText(adapter, "Speed: " 
+		appendSimpleText(adapter, getString(R.string.info_speed)   
 				+ Singleton.getInstance().getGPSData().getSpeedAsString());
-		
-		appendHeader(adapter, "Time Details");
-		appendSimpleText(adapter, "UTC Time of Fix: "
-				+ Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
-		appendSimpleText(adapter, "Current Time: "
-				+ Singleton.getInstance().getGPSData().getCurrentTimeAsString());
-		appendSimpleText(adapter, "Time Since Last Fix: "
-				+ Singleton.getInstance().getGPSData().getTimeSinceLastFixAsString());
 
 
-		appendHeader(adapter, "GPS Satellites");
-		appendSimpleText(adapter, "Satellites: " 
-				+ Singleton.getInstance().getGPSData().getSatellitesSize());
-		appendSimpleText(adapter, "Event: " 
+		appendHeader(adapter, getString(R.string.header_other));
+		appendSimpleText(adapter,getString(R.string.info_event)  
 				+ Singleton.getInstance().getGPSData().getGPSEvent());
+		appendSimpleText(adapter, getString(R.string.info_utc_time)
+				+ Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
 
 		getListView().setAdapter(adapter);
 	}
@@ -210,39 +188,48 @@ public class FragmentMergeAdapter extends ListFragment {
 
 		final MergeAdapter adapter = new MergeAdapter();
 
-		appendHeader(adapter, "Network Status " + getConstructorArguments());
-		appendSimpleText(adapter, "Cell Network Adapter: " 
+		appendHeader(adapter, getString(R.string.header_network_status));
+		appendSimpleText(adapter, getString(R.string.info_network_adapter)   
 				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
-		appendSimpleText(adapter, "Provider: "
+		appendSimpleText(adapter, getString(R.string.info_provider)  
 				+ Singleton.getInstance().getNetworkData().getProvider());
 
-		appendHeader(adapter, "Network Location");
-		appendSimpleText(adapter, "Latitude: " 
+		appendHeader(adapter, getString(R.string.header_location));
+		appendSimpleText(adapter, getString(R.string.info_latitude)  
 				+ Singleton.getInstance().getNetworkData().getLatitudeAsString());
-		appendSimpleText(adapter, "Longitude: " 
+		appendSimpleText(adapter, getString(R.string.info_longitude)  
 				+ Singleton.getInstance().getNetworkData().getLongitudeAsString());
-		appendSimpleText(adapter, "Altitude: " 
+		appendSimpleText(adapter, getString(R.string.info_altitude)  
 				+ Singleton.getInstance().getNetworkData().getAltitudeAsString());
 
-		appendHeader(adapter, "Network Details");
-		appendSimpleText(adapter, "Accuracy: " 
+		appendHeader(adapter, getString(R.string.header_details));
+		appendSimpleText(adapter, getString(R.string.info_accuracy)  
 				+ Singleton.getInstance().getNetworkData().getAccuracyAsString());
-		appendSimpleText(adapter, "Bearing: " 
+		appendSimpleText(adapter, getString(R.string.info_bearing)  
 				+ Singleton.getInstance().getNetworkData().getBearingAsString());
-		appendSimpleText(adapter, "Speed: " 
+		appendSimpleText(adapter, getString(R.string.info_speed)  
 				+ Singleton.getInstance().getNetworkData().getSpeedAsString());
-		
-		appendHeader(adapter, "Time Details");
-		appendSimpleText(adapter, "UTC Time of Fix: "
+
+		appendHeader(adapter, getString(R.string.header_other));
+		appendSimpleText(adapter, getString(R.string.info_utc_time)  
 				+ Singleton.getInstance().getNetworkData().getUtcFixTimeAsString());
-		appendSimpleText(adapter, "Current Time: "
-				+ Singleton.getInstance().getNetworkData().getCurrentTimeAsString());
-		appendSimpleText(adapter, "Time Since Last Fix: "
-				+ Singleton.getInstance().getNetworkData().getTimeSinceLastFixAsString());
 
 		getListView().setAdapter(adapter);
 	}
-	
+
+	/**
+	 * Adds data to the Merge Adapter
+	 */
+	private void populateNMEAMergeAdapter() {
+
+		final MergeAdapter adapter = new MergeAdapter();
+
+		appendHeader(adapter, getString(R.string.header_nmea));
+		appendSimpleText(adapter, Singleton.getInstance().getGPSData().getNmea());
+
+		getListView().setAdapter(adapter);
+	}
+
 	/**
 	 * Adds data to the Merge Adapter
 	 */
@@ -250,39 +237,37 @@ public class FragmentMergeAdapter extends ListFragment {
 
 		final MergeAdapter adapter = new MergeAdapter();
 
-		appendHeader(adapter, "Network Status " + getConstructorArguments());
-		appendSimpleText(adapter, "Cell Network Adapter: " 
+		appendHeader(adapter, getString(R.string.header_network_status));
+		appendSimpleText(adapter, getString(R.string.info_network_adapter)  
 				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
-		appendSimpleText(adapter, "Provider: "
+		appendSimpleText(adapter, getString(R.string.info_gps_adapter)  
+				+ Singleton.getInstance().getNetworkStatus().isGPSEnabledAsString());
+		appendSimpleText(adapter, getString(R.string.info_provider)  
 				+ Singleton.getInstance().getPassiveData().getProvider());
 
-		appendHeader(adapter, "Network Location");
-		appendSimpleText(adapter, "Latitude: " 
+		appendHeader(adapter, getString(R.string.header_location));
+		appendSimpleText(adapter, getString(R.string.info_latitude)  
 				+ Singleton.getInstance().getPassiveData().getLatitudeAsString());
-		appendSimpleText(adapter, "Longitude: " 
+		appendSimpleText(adapter, getString(R.string.info_longitude)  
 				+ Singleton.getInstance().getPassiveData().getLongitudeAsString());
-		appendSimpleText(adapter, "Altitude: " 
+		appendSimpleText(adapter, getString(R.string.info_altitude)  
 				+ Singleton.getInstance().getPassiveData().getAltitudeAsString());
 
-		appendHeader(adapter, "Network Details");
-		appendSimpleText(adapter, "Accuracy: " 
+		appendHeader(adapter, getString(R.string.header_details));
+		appendSimpleText(adapter, getString(R.string.info_accuracy)   
 				+ Singleton.getInstance().getPassiveData().getAccuracyAsString());
-		appendSimpleText(adapter, "Bearing: " 
+		appendSimpleText(adapter, getString(R.string.info_bearing)  
 				+ Singleton.getInstance().getPassiveData().getBearingAsString());
-		appendSimpleText(adapter, "Speed: " 
+		appendSimpleText(adapter, getString(R.string.info_speed)  
 				+ Singleton.getInstance().getPassiveData().getSpeedAsString());
-		
-		appendHeader(adapter, "Time Details");
-		appendSimpleText(adapter, "UTC Time of Fix: "
+
+		appendHeader(adapter, getString(R.string.header_other));
+		appendSimpleText(adapter, getString(R.string.info_utc_time)  
 				+ Singleton.getInstance().getPassiveData().getUtcFixTimeAsString());
-		appendSimpleText(adapter, "Current Time: "
-				+ Singleton.getInstance().getPassiveData().getCurrentTimeAsString());
-		appendSimpleText(adapter, "Time Since Last Fix: "
-				+ Singleton.getInstance().getPassiveData().getTimeSinceLastFixAsString());
 
 		getListView().setAdapter(adapter);
 	}
-	
+
 	/**
 	 * Registers a response receiver waiting for network change broadcasts or GPS broadcasts
 	 */
@@ -308,6 +293,20 @@ public class FragmentMergeAdapter extends ListFragment {
 		getActivity().registerReceiver(mResponseReceiver, intentFilter);
 	}
 
+	public void switchConstructorArguments() {
+		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode()) {
+			populateGPSMergeAdapter();
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode()) {
+			populateNMEAMergeAdapter();
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode()) {
+			populateNetworkMergeAdapter();
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode()) {
+			populatePassiveMergeAdapter();
+		} else {
+			// Do Nothing
+		}
+	}
+
 	/**
 	 * Unregisters the response receiver
 	 */
@@ -322,19 +321,4 @@ public class FragmentMergeAdapter extends ListFragment {
 							+ e.getLocalizedMessage());
 		}
 	}
-
-	/**
-	 * Adds data to the Merge Adapter
-	 */
-	private void populateNMEAMergeAdapter() {
-
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, "NMEA Sentences " + getConstructorArguments());
-		appendSimpleText(adapter, Singleton.getInstance().getGPSData().getNmea());
-
-		getListView().setAdapter(adapter);
-	}
-
-
 }

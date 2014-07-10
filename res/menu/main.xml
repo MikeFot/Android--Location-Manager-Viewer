@@ -7,16 +7,21 @@
         android:title=""
         app:actionLayout="@layout/switch_layout"
         app:showAsAction="always"/>
-
     <item
         android:id="@+id/action_dialog"
         android:showAsAction="withText"
         android:title="@string/action_dialog"/>
-
-    <!-- Settings, should always be in the overflow -->
     <item
         android:id="@+id/action_show_map"
-        android:showAsAction="never"
+        android:showAsAction="withText"
         android:title="@string/action_show_map"/>
+    <item
+        android:id="@+id/action_settings"
+        android:showAsAction="withText"
+        android:title="@string/action_settings"/>
+    <item
+        android:id="@+id/action_about"
+        android:showAsAction="withText"
+        android:title="@string/action_about"/>
 
 </menu>

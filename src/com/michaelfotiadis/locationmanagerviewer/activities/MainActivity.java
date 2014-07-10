@@ -1,6 +1,8 @@
 package com.michaelfotiadis.locationmanagerviewer.activities;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -9,6 +11,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -17,22 +20,80 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.michaelfotiadis.locationmanagerviewer.R;
 import com.michaelfotiadis.locationmanagerviewer.adapters.CustomFragmentAdapter;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentMergeAdapter;
-import com.michaelfotiadis.locationmanagerviewer.utils.Dialogs;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 public class MainActivity extends ActionBarActivity implements
 OnCheckedChangeListener, TabListener, OnPageChangeListener {
+
+	@SuppressLint("InflateParams")
+	public static class AboutDialog extends DialogFragment {
+
+		public AboutDialog() {
+		}
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			final LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+			final View content = inflater.inflate(R.layout.dialog_about, null, false);
+			final TextView version =(TextView) content.findViewById(R.id.version);
+
+			version.setText( "Version: " + getString(R.string.version));
+
+			return new AlertDialog.Builder(getActivity())
+			.setTitle(R.string.app_name)
+			.setView(content)
+			.setPositiveButton(R.string.ok,
+					new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					dialog.dismiss();
+				}
+			}
+					)
+					.create();
+		}
+	}
+
+	public static class ProviderInformationDialog extends DialogFragment {
+		WebView mWebView;
+		public ProviderInformationDialog() {
+			mWebView = new WebView(Singleton.getInstance().getContext());
+			mWebView.loadUrl("file:///android_asset/about.html");
+		}
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			return new AlertDialog.Builder(getActivity())
+			.setTitle(getString(R.string.provider_information))
+			.setView(mWebView)
+			.setPositiveButton(R.string.ok,
+					new DialogInterface.OnClickListener() {
+				@Override
+				public void onClick(DialogInterface dialog, int whichButton) {
+					dialog.dismiss();
+				}
+			}
+					)
+					.create();
+		}
+	}
 
 	/**
 	 * Custom receiver for airplane mode changes
@@ -49,10 +110,11 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 			}
 		}
 	}
-
 	private final String TAG = "Main Activity";
 	private ViewPager mViewPager;
+
 	private Switch mSwitchButton;
+
 	private boolean isScanning = false;
 
 	ResponseReceiver mResponseReceiver;
@@ -98,7 +160,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		Fragment fragment;
 		String tabTitle = "";
 
-
+		// Reuse the same fragment, but with new instance of it for each position
 		for (int i = 0; i < 4; i++) {
 			tab = getSupportActionBar().newTab();
 			switch (i) {
@@ -108,7 +170,6 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 				break;
 			case 1:
 				tabTitle = getString(R.string.title_section2);
-
 				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode());
 				break;
 			case 2:
@@ -123,6 +184,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 				throw new IllegalStateException("We should not be here!");
 			}
 
+			// Finalise the tab
 			tab.setText(tabTitle);
 			tab.setTabListener(this);
 
@@ -151,11 +213,18 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
 		case R.id.action_dialog :
-			new Dialogs().makeDialog(MainActivity.this, 
-					generateTextForPosition(MainActivity.this.getSupportActionBar().getSelectedNavigationIndex()));
+			ProviderInformationDialog dialog = new ProviderInformationDialog();
+			dialog.show(getSupportFragmentManager(), "Dialog");
 			break;
 		case R.id.action_show_map:
 			showOnMap();
+			break;
+		case R.id.action_settings:
+			this.startActivity(new Intent(
+					Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+			break;
+		case R.id.action_about:
+			new AboutDialog().show(getSupportFragmentManager().beginTransaction(), "dialog");
 			break;
 		default:
 			Logger.e(TAG, "Nothing Selected. How did we get here?");
@@ -164,12 +233,22 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		return super.onOptionsItemSelected(item);
 	}
 
-	private void showOnMap() {
-		String uri = "https://maps.google.com/maps?f=d";   
-		Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-		startActivity(i);
+	@Override
+	public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+		// Do nothing
 	}
-	
+
+	@Override
+	public void onPageScrollStateChanged(int state) {
+		// Do nothing
+	}
+
+	@Override
+	public void onPageSelected(int position) {
+		// Change the selected page
+		getSupportActionBar().setSelectedNavigationItem(position);
+	}
+
 	@Override
 	protected void onPause() {
 		Logger.i(TAG, "onPause");
@@ -190,7 +269,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		mSwitchButton.setChecked(isScanning);
 		mSwitchButton.setOnCheckedChangeListener(this);
 		mSwitchButton.setChecked(isScanning);
-		
+
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -217,7 +296,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		Logger.i(TAG, "onStart");
 		super.onStart();
 	}
-	
+
 	@Override
 	public void onTabReselected(Tab tab, FragmentTransaction fragmentTransaction) {
 		// Do nothing
@@ -246,43 +325,32 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		this.registerReceiver(mResponseReceiver, intentFilter);
 	}
 
-	/**
-	 * Function to show settings alert dialog
-	 * */
-	public void showSettingsAlert() {
-		AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+	private void showOnMap() {
+		//		String uri = "https://maps.google.com/maps?f=d";   
+		double latitude = Singleton.getInstance().getPassiveData().getLatitude();
+		double longitude = Singleton.getInstance().getPassiveData().getLongitude();
+		if (latitude != 0 && longitude != 0) {
 
-		// Setting Dialog Title
-		alertDialog.setTitle("GPS settings");
+			String label = "My Location";
+			StringBuilder uri = new StringBuilder();
+			uri.append("geo:<");
+			uri.append(latitude);
+			uri.append(">,<");
+			uri.append(longitude);
+			uri.append(">?q=<");
+			uri.append(latitude);
+			uri.append(">,<");
+			uri.append(longitude);
+			uri.append(">(");
+			uri.append(label);
+			uri.append(")");
 
-		// Setting Dialog Message
-		alertDialog
-		.setMessage("GPS is not enabled. Do you want to go to settings menu?");
-
-		// On pressing Settings button
-		alertDialog.setPositiveButton("Settings",
-				new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				Intent intent = new Intent(
-						Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-				startActivity(intent);
-				Singleton.getInstance().startCollectingLocationData();
-			}
-		});
-
-		// on pressing cancel button
-		alertDialog.setNegativeButton("Cancel",
-				new DialogInterface.OnClickListener() {
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				dialog.cancel();
-				Singleton.getInstance().startCollectingLocationData();
-			}
-		});
-
-		// Showing Alert Message
-		alertDialog.show();
+			Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(uri.toString()));
+			startActivity(i);
+		} else {
+			Toast.makeText(this,"No Location", 
+					Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	/**
@@ -313,45 +381,5 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		}
 	}
 
-	@Override
-	public void onPageScrollStateChanged(int state) {
-		// Do nothing
-	}
-
-	@Override
-	public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-		// Do nothing
-	}
-
-	@Override
-	public void onPageSelected(int position) {
-		// Change the selected page
-		getSupportActionBar().setSelectedNavigationItem(position);
-	}
-
-	public String generateTextForPosition (int position) {
-		
-		String message = "";
-		
-		 switch (position) {
-		 case 0:
-			 message = getString(R.string.message_gps);
-			 break;
-		 case 1:
-			 message = getString(R.string.message_nmea);
-			 break;
-		 case 2:
-			 message = getString(R.string.message_network);
-			 break;
-		 case 3:
-			 message = getString(R.string.message_passive);
-			 break;
-		default:
-			break;
-		 }
-		
-		return message;
-	}
-	
 
 }

@@ -8,6 +8,6 @@
 
     <TextView
         android:id="@+id/data"
-        style="@style/GridLayoutDataTextView" />
+        style="@style/GridLayoutDataTextViewMonospace" />
 
 </LinearLayout>

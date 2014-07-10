@@ -160,7 +160,7 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
 		}
 	}
-	
+
 	/**
 	 * Modifies Network Status object and broadcasts the change
 	 */
@@ -208,7 +208,7 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			break;
 
 		case GpsStatus.GPS_EVENT_SATELLITE_STATUS:
-			mGPSLocationData.setGPSEvent("Satellite Detected");
+			mGPSLocationData.setGPSEvent("Signal Detected");
 			break;
 		default:
 			mGPSLocationData.setGPSEvent("Inactive");
@@ -228,7 +228,16 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 
 	@Override
 	public void onNmeaReceived(long timestamp, String nmea) {
-		mGPSLocationData.appendToNmea(nmea);
+
+		String[] splitNMEA = nmea.split("$");
+
+		for (String data : splitNMEA) {
+			if (data.length() > 2) {
+				mGPSLocationData.appendToNmea(data);
+			}
+		}
+
+
 		notifyNMEAChanged();
 	}
 
@@ -324,13 +333,13 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 		mLocationManager = (LocationManager) mContext	.getSystemService(Context.LOCATION_SERVICE);
 		mLocationManager.addGpsStatusListener(this);
 		mLocationManager.addNmeaListener(this);
-		
+
 		requestGPSLocationUpdates();
 		requestNetworkLocationUpdates();
 		requestPassiveLocationUpdates();
 		requestNetworkUpdate();
 	}
-	
+
 	public void stopCollectingLocationData() {
 		Logger.d(TAG, "Attempting to Stop GPS");
 		if(mLocationManager != null) {
