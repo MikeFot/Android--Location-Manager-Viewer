@@ -1,6 +1,5 @@
 package com.michaelfotiadis.locationmanagerviewer.fragments;
 
-import android.annotation.SuppressLint;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,40 +9,50 @@ import android.support.v4.app.ListFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
-import com.commonsware.cwac.merge.MergeAdapter;
 import com.michaelfotiadis.locationmanagerviewer.R;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
+import com.michaelfotiadis.locationmanagerviewer.utils.MergeAdapterBuilder;
 
 public class FragmentMergeAdapter extends ListFragment {
 
 	/**
 	 * Custom receiver for Network and GPS changes
+	 * 
 	 * @author Michael Fotiadis
-	 *
+	 * 
 	 */
 	private class ResponseReceiver extends BroadcastReceiver {
 		@Override
+		/*All of the cases are going to the same method but it is at least expandable 
+		 in case I want to add more functionality*/
 		public void onReceive(Context context, Intent intent) {
 			if (intent.getAction().equalsIgnoreCase(
-					MyConstants.Broadcasts.BROADCAST_1.getString())) {
-				populateGPSMergeAdapter();
-			} else if  (intent.getAction().equalsIgnoreCase(
-					MyConstants.Broadcasts.BROADCAST_2.getString())) {
-				populateGPSMergeAdapter();
+					MyConstants.Broadcasts.BROADCAST_NETWORK_STATE_CHANGED
+					.getString())) {
+				populateMergeAdapterByConstructorArguments();
 			} else if (intent.getAction().equalsIgnoreCase(
-					MyConstants.Broadcasts.BROADCAST_3.getString())) {
-				populateNMEAMergeAdapter();
-			}  else if (intent.getAction().equalsIgnoreCase(
-					MyConstants.Broadcasts.BROADCAST_4.getString())) {
-				populateNetworkMergeAdapter();
-			}    else if (intent.getAction().equalsIgnoreCase(
-					MyConstants.Broadcasts.BROADCAST_5.getString())) {
-				populatePassiveMergeAdapter();
+					MyConstants.Broadcasts.BROADCAST_GPS_CHANGED.getString())) {
+				populateMergeAdapterByConstructorArguments();
+			} else if (intent.getAction().equalsIgnoreCase(
+					MyConstants.Broadcasts.BROADCAST_GPS_STATE_CHANGED
+					.getString())) {
+				populateMergeAdapterByConstructorArguments();
+			} else if (intent.getAction().equalsIgnoreCase(
+					MyConstants.Broadcasts.BROADCAST_NMEA_CHANGED.getString())) {
+				populateMergeAdapterByConstructorArguments();
+			} else if (intent.getAction().equalsIgnoreCase(
+					MyConstants.Broadcasts.BROADCAST_NETWORK_CHANGED
+					.getString())) {
+				populateMergeAdapterByConstructorArguments();
+			} else if (intent.getAction().equalsIgnoreCase(
+					MyConstants.Broadcasts.BROADCAST_PASSIVE_CHANGED
+					.getString())) {
+				populateMergeAdapterByConstructorArguments();
+			} else {
+				// Do nothing
 			}
 		}
 	}
@@ -62,46 +71,9 @@ public class FragmentMergeAdapter extends ListFragment {
 	private final String TAG = "Fragment Merge Adapter";
 	private ResponseReceiver mResponseReceiver;
 
-	/**
-	 * Append a header to the MergeAdapter
-	 * @param inflater 
-	 * @param adapter
-	 * @param title
-	 */
-	@SuppressLint("InflateParams")
-	private void appendHeader(MergeAdapter adapter, String title){
-		final LinearLayout layout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.list_item_view_header, null);
-		if (layout == null) {
-			Logger.e(TAG, "NULL LAYOUT");
-			return;
-		} 
-		final TextView tvTitle = (TextView) layout.findViewById(R.id.title);
-		tvTitle.setText(title);
-		adapter.addView(layout);
-	}
-
-	/**
-	 * Append body text to the MergeAdapter
-	 * @param adapter
-	 * @param data
-	 */
-	@SuppressLint("InflateParams")
-	private void appendSimpleText(MergeAdapter adapter, String data){
-		final LinearLayout layout = (LinearLayout) getActivity().getLayoutInflater().inflate(R.layout.list_item_view_textview, null);
-		if (layout == null) {
-			Logger.e(TAG, "NULL LAYOUT");
-			return;
-		} 
-
-		final TextView tvData = (TextView) layout.findViewById(R.id.data);
-		tvData.setText(data);
-		adapter.addView(layout);
-	}
-
 	public int getConstructorArguments() {
 		return getArguments().getInt(ARG_POSITION);
 	}
-
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
@@ -120,7 +92,8 @@ public class FragmentMergeAdapter extends ListFragment {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 
-		return inflater.inflate(R.layout.fragment_merge_adapter, container, false);
+		return inflater.inflate(R.layout.fragment_merge_adapter, container,
+				false);
 	}
 
 	@Override
@@ -136,175 +109,87 @@ public class FragmentMergeAdapter extends ListFragment {
 		Logger.d(TAG, "onResume");
 		registerResponseReceiver();
 
-		switchConstructorArguments();
+		populateMergeAdapterByConstructorArguments();
 
 		Singleton.getInstance().requestNetworkUpdate();
 		super.onResume();
 	}
 
 	/**
-	 * Adds data to the Merge Adapter
-	 */
-	private void populateGPSMergeAdapter() {
-
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, getString(R.string.header_network_status));
-		appendSimpleText(adapter, getString(R.string.info_gps_adapter)  
-				+ Singleton.getInstance().getNetworkStatus().isGPSEnabledAsString());
-		appendSimpleText(adapter, getString(R.string.info_provider)  
-				+ Singleton.getInstance().getGPSData().getProvider());
-
-		appendHeader(adapter,getString(R.string.header_location));
-		appendSimpleText(adapter, getString(R.string.info_latitude)  
-				+ Singleton.getInstance().getGPSData().getLatitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_longitude)   
-				+ Singleton.getInstance().getGPSData().getLongitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_altitude)   
-				+ Singleton.getInstance().getGPSData().getAltitudeAsString());
-
-		appendHeader(adapter,getString(R.string.header_details));
-		appendSimpleText(adapter, getString(R.string.info_accuracy)  
-				+ Singleton.getInstance().getGPSData().getAccuracyAsString());
-		appendSimpleText(adapter, getString(R.string.info_bearing)  
-				+ Singleton.getInstance().getGPSData().getBearingAsString());
-		appendSimpleText(adapter, getString(R.string.info_speed)   
-				+ Singleton.getInstance().getGPSData().getSpeedAsString());
-
-
-		appendHeader(adapter, getString(R.string.header_other));
-		appendSimpleText(adapter,getString(R.string.info_event)  
-				+ Singleton.getInstance().getGPSData().getGPSEvent());
-		appendSimpleText(adapter, getString(R.string.info_utc_time)
-				+ Singleton.getInstance().getGPSData().getUtcFixTimeAsString());
-
-		getListView().setAdapter(adapter);
-	}
-
-	/**
-	 * Adds data to the Merge Adapter
-	 */
-	private void populateNetworkMergeAdapter() {
-
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, getString(R.string.header_network_status));
-		appendSimpleText(adapter, getString(R.string.info_network_adapter)   
-				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
-		appendSimpleText(adapter, getString(R.string.info_provider)  
-				+ Singleton.getInstance().getNetworkData().getProvider());
-
-		appendHeader(adapter, getString(R.string.header_location));
-		appendSimpleText(adapter, getString(R.string.info_latitude)  
-				+ Singleton.getInstance().getNetworkData().getLatitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_longitude)  
-				+ Singleton.getInstance().getNetworkData().getLongitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_altitude)  
-				+ Singleton.getInstance().getNetworkData().getAltitudeAsString());
-
-		appendHeader(adapter, getString(R.string.header_details));
-		appendSimpleText(adapter, getString(R.string.info_accuracy)  
-				+ Singleton.getInstance().getNetworkData().getAccuracyAsString());
-		appendSimpleText(adapter, getString(R.string.info_bearing)  
-				+ Singleton.getInstance().getNetworkData().getBearingAsString());
-		appendSimpleText(adapter, getString(R.string.info_speed)  
-				+ Singleton.getInstance().getNetworkData().getSpeedAsString());
-
-		appendHeader(adapter, getString(R.string.header_other));
-		appendSimpleText(adapter, getString(R.string.info_utc_time)  
-				+ Singleton.getInstance().getNetworkData().getUtcFixTimeAsString());
-
-		getListView().setAdapter(adapter);
-	}
-
-	/**
-	 * Adds data to the Merge Adapter
-	 */
-	private void populateNMEAMergeAdapter() {
-
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, getString(R.string.header_nmea));
-		appendSimpleText(adapter, Singleton.getInstance().getGPSData().getNmea());
-
-		getListView().setAdapter(adapter);
-	}
-
-	/**
-	 * Adds data to the Merge Adapter
-	 */
-	private void populatePassiveMergeAdapter() {
-
-		final MergeAdapter adapter = new MergeAdapter();
-
-		appendHeader(adapter, getString(R.string.header_network_status));
-		appendSimpleText(adapter, getString(R.string.info_network_adapter)  
-				+ Singleton.getInstance().getNetworkStatus().isCellNetworkEnabledAsString());
-		appendSimpleText(adapter, getString(R.string.info_gps_adapter)  
-				+ Singleton.getInstance().getNetworkStatus().isGPSEnabledAsString());
-		appendSimpleText(adapter, getString(R.string.info_provider)  
-				+ Singleton.getInstance().getPassiveData().getProvider());
-
-		appendHeader(adapter, getString(R.string.header_location));
-		appendSimpleText(adapter, getString(R.string.info_latitude)  
-				+ Singleton.getInstance().getPassiveData().getLatitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_longitude)  
-				+ Singleton.getInstance().getPassiveData().getLongitudeAsString());
-		appendSimpleText(adapter, getString(R.string.info_altitude)  
-				+ Singleton.getInstance().getPassiveData().getAltitudeAsString());
-
-		appendHeader(adapter, getString(R.string.header_details));
-		appendSimpleText(adapter, getString(R.string.info_accuracy)   
-				+ Singleton.getInstance().getPassiveData().getAccuracyAsString());
-		appendSimpleText(adapter, getString(R.string.info_bearing)  
-				+ Singleton.getInstance().getPassiveData().getBearingAsString());
-		appendSimpleText(adapter, getString(R.string.info_speed)  
-				+ Singleton.getInstance().getPassiveData().getSpeedAsString());
-
-		appendHeader(adapter, getString(R.string.header_other));
-		appendSimpleText(adapter, getString(R.string.info_utc_time)  
-				+ Singleton.getInstance().getPassiveData().getUtcFixTimeAsString());
-
-		getListView().setAdapter(adapter);
-	}
-
-	/**
-	 * Registers a response receiver waiting for network change broadcasts or GPS broadcasts
+	 * Registers a response receiver waiting for network change broadcasts or
+	 * GPS broadcasts
 	 */
 	private void registerResponseReceiver() {
 		Logger.d(TAG, "Registering Response Receiver");
 		IntentFilter intentFilter = new IntentFilter();
-		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode()) {
+		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_GPS
+				.getCode()) {
 			// GPS broadcast
-			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_1.getString());
-			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_2.getString());
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode()) {
+			intentFilter
+			.addAction(MyConstants.Broadcasts.BROADCAST_NETWORK_STATE_CHANGED
+					.getString());
+			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_GPS_CHANGED
+					.getString());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_SATELLITES
+				.getCode()) {
 			// NMEA broadcast
-			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_3.getString());
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode()) {
+			intentFilter
+			.addAction(MyConstants.Broadcasts.BROADCAST_GPS_STATE_CHANGED
+					.getString());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_NETWORK
+				.getCode()) {
 			// Network broadcast
-			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_4.getString());
-		}else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode()) {
+			intentFilter
+			.addAction(MyConstants.Broadcasts.BROADCAST_NETWORK_CHANGED
+					.getString());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_PASSIVE
+				.getCode()) {
 			// Passive broadcast
-			intentFilter.addAction(MyConstants.Broadcasts.BROADCAST_5.getString());
+			intentFilter
+			.addAction(MyConstants.Broadcasts.BROADCAST_PASSIVE_CHANGED
+					.getString());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_NMEA
+				.getCode()) {
+			// NMEA broadcast
+			intentFilter
+			.addAction(MyConstants.Broadcasts.BROADCAST_NMEA_CHANGED
+					.getString());
 		}
 
 		mResponseReceiver = new ResponseReceiver();
 		getActivity().registerReceiver(mResponseReceiver, intentFilter);
 	}
 
-	public void switchConstructorArguments() {
-		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode()) {
-			populateGPSMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode()) {
-			populateNMEAMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode()) {
-			populateNetworkMergeAdapter();
-		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode()) {
-			populatePassiveMergeAdapter();
+	public void populateMergeAdapterByConstructorArguments() {
+		// Create a new builder using the layout inflater
+
+		MergeAdapterBuilder builder = new MergeAdapterBuilder(getActivity());
+
+		// Switch for the constructor argument
+		if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_GPS
+				.getCode()) {
+			getListView().setAdapter(
+					builder.generateGPSAdapter());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_NETWORK
+				.getCode()) {
+			getListView().setAdapter(
+					builder.generateNetworkAdapter());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_PASSIVE
+				.getCode()) {
+			getListView().setAdapter(
+					builder.generatePassiveAdapter());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_SATELLITES
+				.getCode()) {
+			getListView().setAdapter(
+					builder.generateSatelliteAdapter());
+		} else if (getConstructorArguments() == MyConstants.FragmentCode.FRAGMENT_CODE_NMEA
+				.getCode()) {
+			getListView().setAdapter(
+					builder.generateNMEAAdapter());
 		} else {
 			// Do Nothing
 		}
+		builder = null;
 	}
 
 	/**

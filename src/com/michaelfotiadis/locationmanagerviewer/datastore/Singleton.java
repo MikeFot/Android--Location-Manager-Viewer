@@ -1,9 +1,14 @@
 package com.michaelfotiadis.locationmanagerviewer.datastore;
 
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.GpsStatus.NmeaListener;
 import android.location.Location;
@@ -11,6 +16,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.widget.Toast;
 
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyLocationData;
@@ -102,9 +108,9 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	 * 
 	 * @return Stored context
 	 */
-	public Context getContext() {
-		return mContext;
-	}
+//	public Context getContext() {
+//		return mContext;
+//	}
 
 	public MyLocationData getGPSData() {
 		return mGPSLocationData;
@@ -131,8 +137,8 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			mGPSLocationData.setLocation(mLocationManager
 					.getLastKnownLocation(LocationManager.GPS_PROVIDER));
 			// Broadcast that data has changed
-			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_2.getString());
-			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_GPS_CHANGED.getString());
+			mContext.sendBroadcast(broadcastIntent);
 		}
 	}
 
@@ -145,19 +151,8 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			mNetworkLocationData.setLocation(mLocationManager
 					.getLastKnownLocation(LocationManager.NETWORK_PROVIDER));
 			// Broadcast that data has changed
-			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_4.getString());
-			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
-		}
-	}
-
-	public void notifyPassiveDataChanged() {
-		if (mLocationManager != null) {
-			// Set the Network Location according to the Network Provider
-			mPassiveLocationData.setLocation(mLocationManager
-					.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
-			// Broadcast that data has changed
-			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_5.getString());
-			Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_NETWORK_CHANGED.getString());
+			mContext.sendBroadcast(broadcastIntent);
 		}
 	}
 
@@ -176,24 +171,40 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 						isProviderEnabled(LocationManager.NETWORK_PROVIDER));
 			}
 			// Broadcast that data has changed
-			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_1.getString());
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_NETWORK_STATE_CHANGED.getString());
 			Logger.i(TAG, "Broadcasting Network State Changed");
 			mContext.sendBroadcast(broadcastIntent);
 		}
 	}
 
+	public void notifyGPSStateChanged() {
+		// Broadcast that data has changed
+		Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_GPS_STATE_CHANGED.getString());
+		mContext.sendBroadcast(broadcastIntent);
+	}
+	
 	/**
 	 * Broadcasts that the NMEA buffer has changed
 	 */
 	public void notifyNMEAChanged() {
 		// Broadcast that data has changed
-		Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_3.getString());
-		Singleton.getInstance().getContext().sendBroadcast(broadcastIntent);
+		Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_NMEA_CHANGED.getString());
+		mContext.sendBroadcast(broadcastIntent);
+	}
+
+	public void notifyPassiveDataChanged() {
+		if (mLocationManager != null) {
+			// Set the Network Location according to the Network Provider
+			mPassiveLocationData.setLocation(mLocationManager
+					.getLastKnownLocation(LocationManager.PASSIVE_PROVIDER));
+			// Broadcast that data has changed
+			Intent broadcastIntent = new Intent(MyConstants.Broadcasts.BROADCAST_PASSIVE_CHANGED.getString());
+			mContext.sendBroadcast(broadcastIntent);
+		}
 	}
 
 	@Override
 	public void onGpsStatusChanged(int event) {
-		GpsStatus gpsStatus = mLocationManager.getGpsStatus(null);
 		switch (event) {
 		case GpsStatus.GPS_EVENT_STARTED:
 			mGPSLocationData.setGPSEvent("GPS Started");
@@ -214,9 +225,19 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 			mGPSLocationData.setGPSEvent("Inactive");
 			break;
 		}
-		mGPSLocationData.setSatellites(gpsStatus.getSatellites());
-		mGPSLocationData.setMaxSatellites(gpsStatus.getMaxSatellites());
+		
+		List<GpsSatellite> satellites = new ArrayList<GpsSatellite>();
+	    int countSatellitesInFix = 0;
+	    for (GpsSatellite sat : mLocationManager.getGpsStatus(null).getSatellites()) {
+	        if(sat.usedInFix()) {
+	            countSatellitesInFix++;           
+	        }
+        	satellites.add(sat);
+	    }
+		mGPSLocationData.setSatellites(satellites);
+		mGPSLocationData.setSatellitesInFix(countSatellitesInFix);
 		notifyGPSDataChanged();
+		notifyGPSStateChanged();
 	}
 
 	@Override
@@ -262,6 +283,12 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	public void requestGPSLocationUpdates() {
 		Logger.d(TAG, "Requesting GPS Updates with time between updates " + MIN_TIME_BW_UPDATES 
 				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
+		if (!mLocationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER)) {
+			Toast.makeText(mContext, "GPS Provider not supported on this Device", 
+					   Toast.LENGTH_LONG).show();
+			Logger.e(TAG, "No GPS Provider");
+			return;
+		}
 		mLocationManager.requestLocationUpdates(
 				LocationManager.GPS_PROVIDER,
 				MIN_TIME_BW_UPDATES,
@@ -275,6 +302,12 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	public void requestNetworkLocationUpdates() {
 		Logger.d(TAG, "Requesting WiFi Updates with time between updates " + MIN_TIME_BW_UPDATES 
 				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
+		if (!mLocationManager.getAllProviders().contains(LocationManager.NETWORK_PROVIDER)) {
+			Toast.makeText(mContext, "Network Provider not supported on this Device", 
+					   Toast.LENGTH_LONG).show();
+			Logger.e(TAG, "No Network Provider");
+			return;
+		}
 		mLocationManager.requestLocationUpdates(
 				LocationManager.NETWORK_PROVIDER,
 				MIN_TIME_BW_UPDATES,
@@ -298,6 +331,12 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 	public void requestPassiveLocationUpdates() {
 		Logger.d(TAG, "Requesting Passive Updates with time between updates " + MIN_TIME_BW_UPDATES 
 				+ " and min distance change for updates " + MIN_DISTANCE_CHANGE_FOR_UPDATES);
+		if (!mLocationManager.getAllProviders().contains(LocationManager.PASSIVE_PROVIDER)) {
+			Toast.makeText(mContext, "Passive Provider not supported on this Device", 
+					   Toast.LENGTH_LONG).show();
+			Logger.e(TAG, "No Passive Provider");
+			return;
+		}
 		mLocationManager.requestLocationUpdates(
 				LocationManager.PASSIVE_PROVIDER,
 				MIN_TIME_BW_UPDATES,

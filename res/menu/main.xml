@@ -8,13 +8,13 @@
         app:actionLayout="@layout/switch_layout"
         app:showAsAction="always"/>
     <item
-        android:id="@+id/action_dialog"
-        android:showAsAction="withText"
-        android:title="@string/action_dialog"/>
-    <item
         android:id="@+id/action_show_map"
         android:showAsAction="withText"
         android:title="@string/action_show_map"/>
+    <item
+        android:id="@+id/action_dialog"
+        android:showAsAction="withText"
+        android:title="@string/action_dialog"/>
     <item
         android:id="@+id/action_settings"
         android:showAsAction="withText"

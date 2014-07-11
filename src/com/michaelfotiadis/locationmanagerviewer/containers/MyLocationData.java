@@ -1,7 +1,7 @@
 package com.michaelfotiadis.locationmanagerviewer.containers;
 
 import java.util.Calendar;
-import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.collections4.queue.CircularFifoQueue;
 
@@ -14,8 +14,8 @@ public class MyLocationData {
 
 	private Location location;
 	private CircularFifoQueue<String> nmeaBuffer;
-	private  Iterable<GpsSatellite>satellites;
-	private int maxSatellites = 0;
+	private  List<GpsSatellite>satellites;
+	private int satellitesInFix = 0;
 
 	private final String TAG = "GPS Data Object";
 
@@ -152,7 +152,7 @@ public class MyLocationData {
 
 
 	public int getMaxSatellites() {
-		return maxSatellites;
+		return getSatellitesInFix();
 	}
 
 	public String getNmea() {
@@ -167,13 +167,13 @@ public class MyLocationData {
 		}
 	}
 
-	public Iterable<GpsSatellite> getSatellites() {
+	public List<GpsSatellite> getSatellites() {
 		return satellites;
 	}
 
 	public int getSatellitesSize() {
-		if (satellites != null && satellites instanceof Collection) {
-			return ((Collection<?>)satellites).size();
+		if (satellites != null ) {
+			return satellites.size();
 		} else {
 			return  0;
 		}
@@ -234,11 +234,15 @@ public class MyLocationData {
 		}
 	}
 
-	public void setMaxSatellites(int maxSatellites) {
-		this.maxSatellites = maxSatellites;
+	public void setSatellites(List<GpsSatellite> satellites) {
+		this.satellites = satellites;
 	}
 
-	public void setSatellites(Iterable<GpsSatellite> satellites) {
-		this.satellites = satellites;
+	public int getSatellitesInFix() {
+		return satellitesInFix;
+	}
+
+	public void setSatellitesInFix(int satellitesInFix) {
+		this.satellitesInFix = satellitesInFix;
 	}
 }

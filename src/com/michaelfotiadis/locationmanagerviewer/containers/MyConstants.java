@@ -11,11 +11,12 @@ import java.text.DecimalFormat;
 public class MyConstants {
 
 	public enum Broadcasts {
-		BROADCAST_1("Brodacast_1"),
-		BROADCAST_2("Broadcast_2"),
-		BROADCAST_3("Broadcast_3"),
-		BROADCAST_4("Broadcast_4"), 
-		BROADCAST_5("Broadcast_5");
+		BROADCAST_NETWORK_STATE_CHANGED("Brodacast_1"), // Network State Changed
+		BROADCAST_GPS_CHANGED("Broadcast_2"),
+		BROADCAST_NMEA_CHANGED("Broadcast_3"), // NMEA Changed
+		BROADCAST_NETWORK_CHANGED("Broadcast_4"), 
+		BROADCAST_PASSIVE_CHANGED("Broadcast_5"),
+		BROADCAST_GPS_STATE_CHANGED("Broadcast_6");
 
 		private String text;
 		Broadcasts(String description) {
@@ -77,10 +78,11 @@ public class MyConstants {
 
 	public enum FragmentCode {
 		FRAGMENT_CODE_0(6000),
-		FRAGMENT_CODE_1(6001),
-		FRAGMENT_CODE_2(6002),
-		FRAGMENT_CODE_3(6003),
-		FRAGMENT_CODE_4(6004);
+		FRAGMENT_CODE_GPS(6001),
+		FRAGMENT_CODE_NETWORK(6002),
+		FRAGMENT_CODE_PASSIVE(6003),
+		FRAGMENT_CODE_SATELLITES(6004),
+		FRAGMENT_CODE_NMEA(6005);
 
 		private int code;
 		FragmentCode(int number) {

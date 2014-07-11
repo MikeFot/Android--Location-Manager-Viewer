@@ -1,17 +1,12 @@
 package com.michaelfotiadis.locationmanagerviewer.activities;
 
-import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
@@ -20,15 +15,11 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.webkit.WebView;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.Switch;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.michaelfotiadis.locationmanagerviewer.R;
@@ -36,64 +27,14 @@ import com.michaelfotiadis.locationmanagerviewer.adapters.CustomFragmentAdapter;
 import com.michaelfotiadis.locationmanagerviewer.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.fragments.FragmentMergeAdapter;
+import com.michaelfotiadis.locationmanagerviewer.utils.DialogUtils.AboutDialog;
+import com.michaelfotiadis.locationmanagerviewer.utils.DialogUtils.ProviderInformationDialog;
 import com.michaelfotiadis.locationmanagerviewer.utils.Logger;
 
 public class MainActivity extends ActionBarActivity implements
 OnCheckedChangeListener, TabListener, OnPageChangeListener {
 
-	@SuppressLint("InflateParams")
-	public static class AboutDialog extends DialogFragment {
-
-		public AboutDialog() {
-		}
-
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			final LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
-			final View content = inflater.inflate(R.layout.dialog_about, null, false);
-			final TextView version =(TextView) content.findViewById(R.id.version);
-
-			version.setText( "Version: " + getString(R.string.version));
-
-			return new AlertDialog.Builder(getActivity())
-			.setTitle(R.string.app_name)
-			.setView(content)
-			.setPositiveButton(R.string.ok,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					dialog.dismiss();
-				}
-			}
-					)
-					.create();
-		}
-	}
-
-	public static class ProviderInformationDialog extends DialogFragment {
-		WebView mWebView;
-		public ProviderInformationDialog() {
-			mWebView = new WebView(Singleton.getInstance().getContext());
-			mWebView.loadUrl("file:///android_asset/about.html");
-		}
-
-		@Override
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			return new AlertDialog.Builder(getActivity())
-			.setTitle(getString(R.string.provider_information))
-			.setView(mWebView)
-			.setPositiveButton(R.string.ok,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int whichButton) {
-					dialog.dismiss();
-				}
-			}
-					)
-					.create();
-		}
-	}
+	
 
 	/**
 	 * Custom receiver for airplane mode changes
@@ -129,6 +70,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	protected void onCreate(Bundle savedInstanceState) {
 		Logger.i(TAG, "onCreate");
 		super.onCreate(savedInstanceState);
+		
 		setContentView(R.layout.activity_main);
 
 		// Set up the action bar
@@ -136,6 +78,8 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		final ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
+
+		
 		if (savedInstanceState != null) {
 			isScanning = savedInstanceState.getBoolean(
 					MyConstants.Payloads.PAYLOAD_1.toString(), false);
@@ -152,33 +96,33 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		// Initialise the adapter
 		Logger.d(TAG, "Setting Adapter");
 
-
-		new FragmentMergeAdapter();
-		//Fragment f = FragmentGPS.newInstance(0);
-
 		Tab tab;
 		Fragment fragment;
 		String tabTitle = "";
 
 		// Reuse the same fragment, but with new instance of it for each position
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 5; i++) {
 			tab = getSupportActionBar().newTab();
 			switch (i) {
 			case 0:
 				tabTitle = getString(R.string.title_section1);
-				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_1.getCode());
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_GPS.getCode());
 				break;
 			case 1:
 				tabTitle = getString(R.string.title_section2);
-				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_2.getCode());
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_NETWORK.getCode());
 				break;
 			case 2:
 				tabTitle = getString(R.string.title_section3);
-				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_3.getCode());
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_PASSIVE.getCode());
 				break;
 			case 3:
 				tabTitle = getString(R.string.title_section4);
-				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_4.getCode());
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_SATELLITES.getCode());
+				break;
+			case 4:
+				tabTitle = getString(R.string.title_section5);
+				fragment = FragmentMergeAdapter.newInstance(MyConstants.FragmentCode.FRAGMENT_CODE_NMEA.getCode());
 				break;
 			default:
 				throw new IllegalStateException("We should not be here!");
@@ -208,22 +152,24 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 
 		return super.onCreateOptionsMenu(menu);
 	}
-
+	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Logger.d(TAG, "Action on " + item.getItemId());
 		switch (item.getItemId()) {
-		case R.id.action_dialog :
-			ProviderInformationDialog dialog = new ProviderInformationDialog();
-			dialog.show(getSupportFragmentManager(), "Dialog");
-			break;
 		case R.id.action_show_map:
 			showOnMap();
+			break;
+		case R.id.action_dialog :
+			// Start a dialog showing location provider information
+			new ProviderInformationDialog().show(getSupportFragmentManager(), "Dialog");
 			break;
 		case R.id.action_settings:
 			this.startActivity(new Intent(
 					Settings.ACTION_LOCATION_SOURCE_SETTINGS));
 			break;
 		case R.id.action_about:
+			// Start a dialog showing the about dialog
 			new AboutDialog().show(getSupportFragmentManager().beginTransaction(), "dialog");
 			break;
 		default:
@@ -252,7 +198,7 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	@Override
 	protected void onPause() {
 		Logger.i(TAG, "onPause");
-
+		
 		unregisterResponseReceivers();
 		Singleton.getInstance().stopCollectingLocationData();
 		super.onPause();
@@ -268,7 +214,6 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 				R.id.switchForActionBar);
 		mSwitchButton.setChecked(isScanning);
 		mSwitchButton.setOnCheckedChangeListener(this);
-		mSwitchButton.setChecked(isScanning);
 
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -326,9 +271,18 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	}
 
 	private void showOnMap() {
-		//		String uri = "https://maps.google.com/maps?f=d";   
-		double latitude = Singleton.getInstance().getPassiveData().getLatitude();
-		double longitude = Singleton.getInstance().getPassiveData().getLongitude();
+		double latitude;
+		double longitude;
+		if (Singleton.getInstance().getGPSData().getLocation() != null) {
+			Logger.d(TAG, "Using GPS Location");
+			latitude = Singleton.getInstance().getGPSData().getLatitude();
+			longitude = Singleton.getInstance().getGPSData().getLongitude();
+		} else {
+			Logger.d(TAG, "Using Passive Location");
+			latitude = Singleton.getInstance().getPassiveData().getLatitude();
+			longitude = Singleton.getInstance().getPassiveData().getLongitude();
+		}
+
 		if (latitude != 0 && longitude != 0) {
 
 			String label = "My Location";
