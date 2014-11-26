@@ -16,3 +16,4 @@ http://commonsware.com/cwac
 ##Target Platforms
 Android devices running OS version 15+.
 
+The code in this project is licensed under the Apache Software License 2.0.
