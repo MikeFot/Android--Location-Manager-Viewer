@@ -1,4 +1,4 @@
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
+<element><menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" >
 
@@ -24,4 +24,4 @@
         android:showAsAction="withText"
         android:title="@string/action_about"/>
 
-</menu>
+</menu></element>

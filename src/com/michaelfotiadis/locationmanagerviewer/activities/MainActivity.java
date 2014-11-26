@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -55,7 +56,9 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 	private ViewPager mViewPager;
 
 	private Switch mSwitchButton;
-
+	
+	
+	
 	private boolean isScanning = false;
 
 	ResponseReceiver mResponseReceiver;
@@ -77,8 +80,6 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		Logger.d(TAG, "Creating Action Bar");
 		final ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-
-
 		
 		if (savedInstanceState != null) {
 			isScanning = savedInstanceState.getBoolean(
@@ -142,9 +143,12 @@ OnCheckedChangeListener, TabListener, OnPageChangeListener {
 		// Set the adapter to the ViewPager
 		mViewPager.getAdapter().notifyDataSetChanged();
 
+		
+		
 		Logger.d(TAG, "onCreate finished");
 	}
 
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		Logger.i(TAG, "onCreateOptionsMenu");
