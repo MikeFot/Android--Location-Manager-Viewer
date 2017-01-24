@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>    
+    <color name="white">#FFFFFF</color>    
+    <color name="dark_gray">#333333</color>
+    <color name="light_gray">#AFFFFFFF</color>
+
+
+    <color name="primary">@color/md_amber_700</color>
+    <color name="primary_dark">@color/md_amber_900</color>
+    <color name="primary_light">@color/md_amber_300</color>
+    <color name="accent">@color/md_yellow_700</color>
+
+    <color name="primary_text">@color/md_grey_900</color>
+    <color name="secondary_text">@color/md_grey_600</color>
+    <color name="tertiary_text">@color/md_grey_400</color>
+    <color name="text">@color/md_grey_900</color>
+    <color name="icons">@color/md_white_1000</color>
+
+    <color name="window_background">@color/md_grey_100</color>
+
+</resources>

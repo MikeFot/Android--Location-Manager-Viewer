@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="main_title">Location Provider Debugger</string>
+    <string name="title_activity_main">Main Activity</string>
+    <string name="title_section1">GPS</string>
+    <string name="title_section2">Network</string>
+    <string name="title_section3">Passive</string>
+    <string name="title_section4">Satellites</string>
+    <string name="title_section5">NMEA</string>
+    <string name="action_show_map">Show Location on Map</string>
+    <string name="menuitem_refresh">Menu Item Refresh</string>
+    <string name="action_dialog">Provider Information</string>
+    <string name="action_about">About</string>
+    <string name="action_settings">Device Settings</string>
+    <string name="provider_information">Provider Information</string>
+    <string name="ok">OK</string>
+    <string name="about">ABOUT</string>
+
+    <!-- App Fields -->
+    <string name="version">1.0</string>
+    <string name="by_author">by Michael Fotiadis</string>
+    <string name="copyright">&#169; Michael Fotiadis</string>
+    <string name="repo_url" tools:ignore="TypographyDashes">https://github.com/MikeFot/Location-Manager-Viewer--Android</string>
+
+    <!-- Merge Adapter Values -->
+    <!-- Headers -->
+    <string name="header_network_status">"Network Status"</string>
+    <string name="header_location">"Location"</string>
+    <string name="header_details">"Details"</string>
+    <string name="header_other">"Other"</string>
+    <string name="header_nmea">"NMEA Sentences"</string>
+    <string name="header_satellite_list">"Satellite List"</string>
+    <string name="header_satellite">"Satellite "</string>
+
+    <!-- Body -->
+    <string name="info_gps_adapter">"GPS Adapter     : "</string>
+    <string name="info_network_adapter">"Network Adapter : "</string>
+    <string name="info_passive_adapter">"Passive Adapter : "</string>
+    <string name="info_provider">"Provider        : "</string>
+    <string name="info_latitude">"Latitude        : "</string>
+    <string name="info_longitude">"Longitude       : "</string>
+    <string name="info_altitude">"Altitude        : "</string>
+    <string name="info_accuracy">"Accuracy        : "</string>
+    <string name="info_bearing">"Bearing         : "</string>
+    <string name="info_speed">"Speed           : "</string>
+    <string name="info_event">"Event           : "</string>
+    <string name="info_satellites_total">"Satellites Total: "</string>
+    <string name="info_satellites_in_fix">"Satellites Used : "</string>
+    <string name="info_utc_time">"UTC Time of Fix : "</string>
+    <string name="info_satellite_prn">"PRN             : "</string>
+    <string name="info_satellite_azimuth">"Azimuth         : "</string>
+    <string name="info_satellite_elevation">"Elevation       : "</string>
+    <string name="info_satellite_snr">"Signal-to-Noise : "</string>
+    <string name="info_satellite_almanac">"Has Almanac     : "</string>
+    <string name="info_satellite_ephemeris">"Has Ephemeris   : "</string>
+    <string name="info_satellite_used">"Used in Fix     : "</string>
+    <string name="info_degrees">" deg"</string>
+    <string name="info_satellite_none">"No satellites found"</string>
+    <string name="version_prefix">"Version: "</string>
+
+    <string name="toast_warning_permission_not_granted">Coarse location permission not granted</string>
+    <string name="message_stopping">Stopping...</string>
+    <string name="message_starting">Scanning...</string>
+    <string name="scan">Scan</string>
+    <string name="stop">Stop</string>
+    <string name="message_copied_to_clipboard">Copied to clipboard</string>
+
+
+</resources>
