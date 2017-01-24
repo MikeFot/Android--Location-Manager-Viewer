@@ -83,30 +83,12 @@ public class MainActivity extends BaseActivity {
                 // Start a dialog showing the about dialog
                 final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
                 new AboutDialog().show(transaction, AboutDialog.class.getSimpleName());
-                transaction.commit();
                 break;
             default:
                 AppLog.e("Nothing Selected. How did we get here?");
                 break;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    public void checkPermissions() {
-        PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(this,
-                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, new PermissionsResultAction() {
-                    @Override
-                    public void onGranted() {
-                        toggleScanning(true);
-                    }
-
-                    @Override
-                    public void onDenied(final String permission) {
-
-                        Toast.makeText(MainActivity.this, getString(R.string.toast_warning_permission_not_granted), Toast.LENGTH_SHORT).show();
-
-                    }
-                });
     }
 
     @Override
@@ -157,6 +139,23 @@ public class MainActivity extends BaseActivity {
                                            @NonNull final String[] permissions,
                                            @NonNull final int[] grantResults) {
         PermissionsManager.getInstance().notifyPermissionsChange(permissions, grantResults);
+    }
+
+    private void checkPermissions() {
+        PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(this,
+                new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, new PermissionsResultAction() {
+                    @Override
+                    public void onGranted() {
+                        toggleScanning(true);
+                    }
+
+                    @Override
+                    public void onDenied(final String permission) {
+
+                        Toast.makeText(MainActivity.this, getString(R.string.toast_warning_permission_not_granted), Toast.LENGTH_SHORT).show();
+
+                    }
+                });
     }
 
     private void setUpViewPager() {
@@ -213,11 +212,10 @@ public class MainActivity extends BaseActivity {
             final String label = "My Location";
             final String uri = String.format("geo:<%s>,<%s>?q=<%s>,<%s>(%s)", latitude, longitude, latitude, longitude, label);
 
-            final Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            startActivity(i);
+            final Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+            startActivity(intent);
         } else {
-            Toast.makeText(this, "No Location",
-                    Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No Location", Toast.LENGTH_SHORT).show();
         }
     }
 

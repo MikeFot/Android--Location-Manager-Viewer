@@ -2,10 +2,13 @@ package com.michaelfotiadis.locationmanagerviewer.utils;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.Context;
 import android.location.GpsSatellite;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.michaelfotiadis.locationmanagerviewer.R;
@@ -61,6 +64,22 @@ public class MergeAdapterBuilder {
 
         final TextView tvData = (TextView) layout.findViewById(R.id.data);
         tvData.setText(data);
+        tvData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View view) {
+                if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.HONEYCOMB) {
+                    //noinspection deprecation
+                    final android.text.ClipboardManager clipboard = (android.text.ClipboardManager) mActivity.getSystemService(Context.CLIPBOARD_SERVICE);
+                    clipboard.setText(tvData.getText());
+                } else {
+                    final android.content.ClipboardManager clipboard = (android.content.ClipboardManager) mActivity.getSystemService(Context.CLIPBOARD_SERVICE);
+                    final android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text", tvData.getText());
+                    clipboard.setPrimaryClip(clip);
+                }
+                Toast.makeText(mActivity, R.string.message_copied_to_clipboard, Toast.LENGTH_SHORT).show();
+            }
+        });
+
         mAdapter.addView(layout);
     }
 
@@ -101,7 +120,6 @@ public class MergeAdapterBuilder {
     public ListAdapter generateNmeaAdapter() {
         appendHeader(mActivity.getString(R.string.header_nmea));
         appendSimpleText(Singleton.getInstance().getGPSData().getNmea());
-
         return mAdapter;
     }
 

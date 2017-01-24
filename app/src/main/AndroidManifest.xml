@@ -2,17 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.michaelfotiadis.locationmanagerviewer">
 
-    <uses-permission-sdk-23 android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name="com.michaelfotiadis.locationmanagerviewer.LocationApplication"
+        android:name=".LocationApplication"
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
             android:name=".ui.activity.MainActivity"
-            android:label="@string/main_title" >
+            android:label="@string/main_title">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,5 +25,5 @@
             android:value="d936fe3caf46a1a4ffc49339b09d733af6a6b6b5" />
     </application>
 
-    <uses-permission android:name="android.permission.INTERNET" />
+
 </manifest>
