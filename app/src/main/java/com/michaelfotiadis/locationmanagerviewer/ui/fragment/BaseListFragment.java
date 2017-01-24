@@ -33,8 +33,7 @@ public abstract class BaseListFragment extends Fragment {
     ListView mListView;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
 
         final View view = inflater.inflate(R.layout.fragment_merge_adapter, container, false);
 
@@ -103,7 +102,7 @@ public abstract class BaseListFragment extends Fragment {
     protected class ResponseReceiver extends BroadcastReceiver {
         @Override
         /*All of the cases are going to the same method but it is at least expandable
-		 in case I want to add more functionality*/
+         in case I want to add more functionality*/
         public void onReceive(final Context context, final Intent intent) {
             if (intent.getAction().equalsIgnoreCase(
                     MyConstants.Broadcasts.BROADCAST_NETWORK_STATE_CHANGED

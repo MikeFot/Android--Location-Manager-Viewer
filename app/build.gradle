@@ -61,6 +61,8 @@ dependencies {
     compile "com.jakewharton:butterknife:$butterKnifeVersion"
     apt "com.jakewharton:butterknife-compiler:$butterKnifeVersion"
 
+    compile 'com.anthonycr.grant:permissions:1.0'
+
     compile files('libs/commons-collections4-4.0.jar')
     compile files('libs/merge-1.0.2.jar')
     compile files('libs/sacklist-1.0.0.jar')

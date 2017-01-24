@@ -34,9 +34,8 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
     // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 500;
+    private static final long MIN_TIME_BW_UPDATES = 2000;
     private static volatile Singleton _instance = null;
-    private final String TAG = "Singleton";
     // **** Application Fields
     private Context mContext;
     // **** Location Manager Fields

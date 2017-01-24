@@ -31,11 +31,6 @@ public class GpsFragment extends BaseListFragment {
         getActivity().registerReceiver(mResponseReceiver, intentFilter);
     }
 
-    @Override
-    protected void populateMergeAdapter() {
-
-    }
-
     public static BaseListFragment newInstance() {
         return new GpsFragment();
     }

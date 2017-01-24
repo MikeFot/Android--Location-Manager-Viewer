@@ -55,10 +55,16 @@
     <string name="info_satellite_snr">"Signal-to-Noise : "</string>
     <string name="info_satellite_almanac">"Has Almanac     : "</string>
     <string name="info_satellite_ephemeris">"Has Ephemeris   : "</string>
-     <string name="info_satellite_used">"Used in Fix     : "</string>
-     <string name="info_degrees">" deg"</string>
-     <string name="info_satellite_none">"No satellites found"</string>
+    <string name="info_satellite_used">"Used in Fix     : "</string>
+    <string name="info_degrees">" deg"</string>
+    <string name="info_satellite_none">"No satellites found"</string>
     <string name="version_prefix">"Version: "</string>
+
+    <string name="toast_warning_permission_not_granted">Coarse location permission not granted</string>
+    <string name="message_stopping">Stopping...</string>
+    <string name="message_starting">Scanning...</string>
+    <string name="scan">Scan</string>
+    <string name="stop">Stop</string>
 
 
 </resources>

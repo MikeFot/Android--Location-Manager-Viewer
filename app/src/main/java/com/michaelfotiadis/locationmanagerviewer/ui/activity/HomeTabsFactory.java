@@ -57,6 +57,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
+                .withTabIcon(R.drawable.ic_satellite_white_24dp)
                 .withFragment(SatelliteFragment.newInstance()).build();
     }
 
