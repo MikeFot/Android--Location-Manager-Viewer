@@ -1,6 +1,23 @@
-apply plugin: 'com.android.application'
+buildscript {
+    repositories {
+        maven { url 'https://maven.fabric.io/public' }
+    }
 
-final String appCompatLibVersion = "25.0.1"
+    dependencies {
+        classpath 'io.fabric.tools:gradle:1.22.1'
+    }
+}
+apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+apply plugin: 'io.fabric'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+}
+
+
+final String appCompatLibVersion = "25.1.0"
+final String butterKnifeVersion = "8.5.0"
 
 final def STRING = "string"
 final def BOOLEAN = "boolean"
@@ -39,8 +56,15 @@ dependencies {
     compile "com.android.support:appcompat-v7:$appCompatLibVersion"
     compile "com.android.support:design:$appCompatLibVersion"
     compile "com.android.support:preference-v14:$appCompatLibVersion"
+    compile "com.android.support:support-annotations:$appCompatLibVersion"
+
+    compile "com.jakewharton:butterknife:$butterKnifeVersion"
+    apt "com.jakewharton:butterknife-compiler:$butterKnifeVersion"
 
     compile files('libs/commons-collections4-4.0.jar')
     compile files('libs/merge-1.0.2.jar')
     compile files('libs/sacklist-1.0.0.jar')
+    compile('com.crashlytics.sdk.android:crashlytics:2.6.5@aar') {
+        transitive = true;
+    }
 }

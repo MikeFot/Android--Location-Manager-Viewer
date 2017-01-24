@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.michaelfotiadis.locationmanagerviewer.R;
-import com.michaelfotiadis.locationmanagerviewer.datastore.Singleton;
+import com.michaelfotiadis.locationmanagerviewer.data.datastore.Singleton;
 
 import java.util.List;
 
@@ -20,7 +20,6 @@ import java.util.List;
  */
 public class MergeAdapterBuilder {
 
-	private final String TAG = "Merge Adapter Builder";
 	private final Activity mActivity;
 	private final MergeAdapter mAdapter;
 	
@@ -31,17 +30,15 @@ public class MergeAdapterBuilder {
 
 	/**
 	 * Append a header to the MergeAdapter
-	 * @param layoutInflater Layout Inflater
-	 * @param adapter Merge Adapter
-	 * @param data String data
-	 */
+     * @param title String title
+     */
 	@SuppressLint("InflateParams")
 	public void appendHeader(final String title){
 		
 		final LinearLayout layout = (LinearLayout) mActivity.getLayoutInflater().inflate(R.layout.list_item_view_header, null);
 		if (layout == null) {
-			Logger.e(TAG, "NULL LAYOUT");
-			return;
+            AppLog.e("NULL LAYOUT");
+            return;
 		} 
 		final TextView tvTitle = (TextView) layout.findViewById(R.id.title);
 		tvTitle.setText(title);
@@ -50,16 +47,14 @@ public class MergeAdapterBuilder {
 
 	/**
 	 * Append Body Text to the Merge Adapter
-	 * @param layoutInflater Layout Inflater
-	 * @param adapter Merge Adapter
 	 * @param data String data
 	 */
 	@SuppressLint("InflateParams")
 	public void appendSimpleText(final String data){
 		final LinearLayout layout = (LinearLayout) mActivity.getLayoutInflater().inflate(R.layout.list_item_view_textview, null);
 		if (layout == null) {
-			Logger.e(TAG, "NULL LAYOUT");
-			return;
+            AppLog.e("NULL LAYOUT");
+            return;
 		} 
 
 		final TextView tvData = (TextView) layout.findViewById(R.id.data);
@@ -101,8 +96,8 @@ public class MergeAdapterBuilder {
 		return mAdapter;
 	}
 
-	public ListAdapter generateNMEAAdapter() {
-		appendHeader(mActivity.getString(R.string.header_nmea));
+    public ListAdapter generateNmeaAdapter() {
+        appendHeader(mActivity.getString(R.string.header_nmea));
 		appendSimpleText(Singleton.getInstance().getGPSData().getNmea());
 		
 		return mAdapter;

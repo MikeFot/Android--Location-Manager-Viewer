@@ -1,4 +1,4 @@
-package com.michaelfotiadis.locationmanagerviewer.containers;
+package com.michaelfotiadis.locationmanagerviewer.data.containers;
 
 import java.text.DecimalFormat;
 

@@ -1,27 +1,26 @@
-<element>
-    <menu xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
         android:id="@+id/switch_scanning"
         android:title=""
         app:actionLayout="@layout/switch_layout"
-        app:showAsAction="always"/>
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_show_map"
-        android:showAsAction="withText"
-        android:title="@string/action_show_map"/>
+        android:title="@string/action_show_map"
+        app:showAsAction="withText" />
     <item
         android:id="@+id/action_dialog"
-        android:showAsAction="withText"
-        android:title="@string/action_dialog"/>
+        android:title="@string/action_dialog"
+        app:showAsAction="withText" />
     <item
         android:id="@+id/action_settings"
-        android:showAsAction="withText"
-        android:title="@string/action_settings"/>
+        android:title="@string/action_settings"
+        app:showAsAction="withText" />
     <item
         android:id="@+id/action_about"
-        android:showAsAction="withText"
-        android:title="@string/action_about"/>
+        android:title="@string/action_about"
+        app:showAsAction="withText" />
 
-</menu></element>
+</menu>

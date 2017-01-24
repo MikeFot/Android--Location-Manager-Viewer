@@ -1,11 +1,11 @@
-package com.michaelfotiadis.locationmanagerviewer.adapters;
+package com.michaelfotiadis.locationmanagerviewer.ui.adapter;
 
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
-import com.michaelfotiadis.locationmanagerviewer.containers.MyFragmentInfo;
+import com.michaelfotiadis.locationmanagerviewer.data.containers.MyFragmentInfo;
 
 import java.util.ArrayList;
 import java.util.List;

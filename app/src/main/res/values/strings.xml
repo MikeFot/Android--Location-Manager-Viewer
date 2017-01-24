@@ -58,6 +58,7 @@
      <string name="info_satellite_used">"Used in Fix     : "</string>
      <string name="info_degrees">" deg"</string>
      <string name="info_satellite_none">"No satellites found"</string>
-    
+    <string name="version_prefix">"Version: "</string>
+
 
 </resources>
