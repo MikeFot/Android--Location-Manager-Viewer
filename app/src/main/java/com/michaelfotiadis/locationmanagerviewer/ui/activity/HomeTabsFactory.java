@@ -36,6 +36,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
+                .withTabIcon(R.drawable.ic_gps_fixed_white_24dp)
                 .withFragment(GpsFragment.newInstance()).build();
     }
 
@@ -43,6 +44,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
+                .withTabIcon(R.drawable.ic_network_wifi_white_24dp)
                 .withFragment(NetworkFragment.newInstance()).build();
     }
 
@@ -50,6 +52,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
+                .withTabIcon(R.drawable.ic_location_on_white_24dp)
                 .withFragment(PassiveFragment.newInstance()).build();
     }
 
@@ -65,6 +68,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
+                .withTabIcon(R.drawable.ic_assignment_white_24dp)
                 .withFragment(NmeaFragment.newInstance()).build();
     }
 
