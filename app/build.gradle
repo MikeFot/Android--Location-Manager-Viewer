@@ -16,7 +16,7 @@ repositories {
 }
 
 
-final String appCompatLibVersion = "25.1.0"
+final String appCompatLibVersion = "25.3.1"
 final String butterKnifeVersion = "8.5.0"
 
 final def STRING = "string"
@@ -25,7 +25,7 @@ final def INT = "int"
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    buildToolsVersion "25.0.2"
 
     defaultConfig {
 
@@ -72,6 +72,8 @@ dependencies {
 
     compile "com.jakewharton:butterknife:$butterKnifeVersion"
     apt "com.jakewharton:butterknife-compiler:$butterKnifeVersion"
+
+
 
     compile 'com.anthonycr.grant:permissions:1.0'
 
