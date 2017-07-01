@@ -6,7 +6,10 @@ This application displays information on the Location Providers supported by And
 - GPS Provider
 - Network Provider
 - Passive Provider
- 
+
+## Play Store
+<a href='https://play.google.com/store/apps/details?id=com.michaelfotiadis.locationmanagerviewer&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_gb/badges/images/generic/en_badge_web_generic.png'/></a>
+
 ## Dependencies
 - Apache Commons Collections
 http://commons.apache.org/proper/commons-collections/
