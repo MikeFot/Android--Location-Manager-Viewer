@@ -1,6 +1,6 @@
 package com.michaelfotiadis.locationmanagerviewer.ui.pager;
 
-import android.support.v4.app.Fragment;
+import android.app.Fragment;
 
 public final class SmartFragmentPagerPage {
     private final Fragment mFragment;

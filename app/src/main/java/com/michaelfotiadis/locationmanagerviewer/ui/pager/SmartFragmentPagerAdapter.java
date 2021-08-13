@@ -1,9 +1,10 @@
 package com.michaelfotiadis.locationmanagerviewer.ui.pager;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.view.ViewGroup;
+
+import androidx.legacy.app.FragmentPagerAdapter;
 
 public class SmartFragmentPagerAdapter extends FragmentPagerAdapter {
 

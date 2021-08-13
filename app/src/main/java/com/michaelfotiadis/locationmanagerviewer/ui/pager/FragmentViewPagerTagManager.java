@@ -1,8 +1,9 @@
 package com.michaelfotiadis.locationmanagerviewer.ui.pager;
 
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.util.SparseArray;
+
 
 /*package*/ class FragmentViewPagerTagManager {
     private final FragmentManager mFragmentManager;

@@ -8,16 +8,17 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.design.widget.TabLayout;
-import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentTransaction;
+import androidx.viewpager.widget.ViewPager;
+
 import com.anthonycr.grant.PermissionsManager;
 import com.anthonycr.grant.PermissionsResultAction;
+import com.google.android.material.tabs.TabLayout;
 import com.michaelfotiadis.locationmanagerviewer.R;
 import com.michaelfotiadis.locationmanagerviewer.data.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.data.datastore.Singleton;
@@ -138,6 +139,7 @@ public class MainActivity extends BaseActivity {
     public void onRequestPermissionsResult(final int requestCode,
                                            @NonNull final String[] permissions,
                                            @NonNull final int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         PermissionsManager.getInstance().notifyPermissionsChange(permissions, grantResults);
     }
 
@@ -162,7 +164,7 @@ public class MainActivity extends BaseActivity {
         final HomeTabsFactory tabsFactory = new HomeTabsFactory(this);
         final SmartFragmentPagerPages pages = tabsFactory.getPages();
 
-        final SmartFragmentPagerAdapter pagerAdapter = new SmartFragmentPagerAdapter(getSupportFragmentManager());
+        final SmartFragmentPagerAdapter pagerAdapter = new SmartFragmentPagerAdapter(getFragmentManager());
         pagerAdapter.setFragments(pages);
         mPager.setAdapter(pagerAdapter);
         mPager.setOffscreenPageLimit(OFF_PAGE_LIMIT);

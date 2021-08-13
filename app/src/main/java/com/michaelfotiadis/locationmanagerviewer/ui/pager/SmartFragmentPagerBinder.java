@@ -5,11 +5,12 @@ import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
-import android.support.design.widget.TabLayout;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.support.v4.view.ViewPager;
 
+import androidx.core.content.ContextCompat;
+import androidx.core.graphics.drawable.DrawableCompat;
+import androidx.viewpager.widget.ViewPager;
+
+import com.google.android.material.tabs.TabLayout;
 import com.michaelfotiadis.locationmanagerviewer.R;
 
 
@@ -60,6 +61,8 @@ public final class SmartFragmentPagerBinder {
                     final int resId = icons[i];
                     if (resId > 0) {
                         Drawable drawable = ContextCompat.getDrawable(pager.getContext(), resId);
+                        // TODO assert this properly
+                        assert drawable != null;
                         DrawableCompat.setTint(drawable, iconColor);
 
                         //noinspection ConstantConditions

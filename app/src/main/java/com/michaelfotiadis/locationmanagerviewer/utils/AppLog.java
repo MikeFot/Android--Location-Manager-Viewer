@@ -6,6 +6,8 @@ import com.michaelfotiadis.locationmanagerviewer.BuildConfig;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -16,6 +18,7 @@ public final class AppLog {
     private static final String LINE_PREFIX = "APP:";
     private static final int MAX_TAG_LENGTH = 50;
     private static final String PACKAGE_PREFIX = BuildConfig.APPLICATION_ID + ".";
+    private static final Pattern COMPILE = Pattern.compile(PACKAGE_PREFIX, Pattern.LITERAL);
 
     private AppLog() {
         // Avoid instantiation
@@ -74,7 +77,7 @@ public final class AppLog {
         if (caller == null) {
             return "";
         } else {
-            final String shortTag = caller.replace(PACKAGE_PREFIX, "");
+            final String shortTag = COMPILE.matcher(caller).replaceAll(Matcher.quoteReplacement(""));
             final boolean shouldBeShorter = shortTag.length() > MAX_TAG_LENGTH;
 
             if (shouldBeShorter) {
@@ -93,15 +96,13 @@ public final class AppLog {
 
     private static String getCallingMethod() {
         final StackTraceElement[] stacks = Thread.currentThread().getStackTrace();
-        if (stacks != null) {
-            for (final StackTraceElement stack : stacks) {
-                final String cn = stack.getClassName();
-                if (cn != null && !CLASSNAME_TO_ESCAPE.contains(cn)) {
-                    if (INCLUDE_METHOD) {
-                        return cn + "#" + stack.getMethodName();
-                    } else {
-                        return cn;
-                    }
+        for (final StackTraceElement stack : stacks) {
+            final String cn = stack.getClassName();
+            if (cn != null && !CLASSNAME_TO_ESCAPE.contains(cn)) {
+                if (INCLUDE_METHOD) {
+                    return cn + "#" + stack.getMethodName();
+                } else {
+                    return cn;
                 }
             }
         }

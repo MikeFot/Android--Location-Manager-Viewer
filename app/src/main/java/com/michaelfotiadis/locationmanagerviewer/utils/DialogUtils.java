@@ -5,13 +5,14 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.DialogFragment;
 
 import com.michaelfotiadis.locationmanagerviewer.R;
 
@@ -55,16 +56,16 @@ public class DialogUtils {
 		public Dialog onCreateDialog(final Bundle savedInstanceState) {
 			final WebView webView = new WebView(getActivity());
 			webView.loadUrl("file:///android_asset/about.html");
-			return new AlertDialog.Builder(getActivity())
-			.setTitle(getString(R.string.provider_information))
+			return new AlertDialog.Builder(requireActivity())
+					.setTitle(getString(R.string.provider_information))
 					.setView(webView)
-			.setPositiveButton(R.string.ok,
-					new DialogInterface.OnClickListener() {
-				@Override
-				public void onClick(final DialogInterface dialog, final int whichButton) {
-					dialog.dismiss();
-				}
-			}
+					.setPositiveButton(R.string.ok,
+							new DialogInterface.OnClickListener() {
+								@Override
+								public void onClick(final DialogInterface dialog, final int whichButton) {
+									dialog.dismiss();
+								}
+							}
 					)
 					.create();
 		}

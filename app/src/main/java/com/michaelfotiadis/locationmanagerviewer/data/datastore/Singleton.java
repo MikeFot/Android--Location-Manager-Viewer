@@ -1,5 +1,7 @@
 package com.michaelfotiadis.locationmanagerviewer.data.datastore;
 
+import static android.provider.Settings.System.AIRPLANE_MODE_ON;
+
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -20,8 +22,6 @@ import com.michaelfotiadis.locationmanagerviewer.utils.AppLog;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static android.provider.Settings.System.AIRPLANE_MODE_ON;
 
 /**
  * Singleton Class

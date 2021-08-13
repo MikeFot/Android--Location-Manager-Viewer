@@ -1,20 +1,17 @@
 package com.michaelfotiadis.locationmanagerviewer.data.containers;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-/**
- * 
- * @author Alexandros Schillings
- *
- */
+
+import androidx.fragment.app.Fragment;
+
 public final class MyFragmentInfo {
     private final Class<?> clss;
     private final Bundle args;
-    
+
     // OR
-    
+
     private final Fragment frag;
-    
+
     public MyFragmentInfo(Class<?> _class, Bundle _args) {
         clss = _class;
         args = _args;
