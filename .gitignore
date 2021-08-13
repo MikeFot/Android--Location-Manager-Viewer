@@ -47,3 +47,5 @@ local.properties
 # Ruby history file
 .irb-history
 
+google-services.json
+

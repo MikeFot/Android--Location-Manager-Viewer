@@ -2,12 +2,12 @@ package com.michaelfotiadis.locationmanagerviewer.data.datastore;
 
 import static android.provider.Settings.System.AIRPLANE_MODE_ON;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
-import android.location.GpsStatus.NmeaListener;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -15,9 +15,13 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
 import com.michaelfotiadis.locationmanagerviewer.data.containers.LocationData;
 import com.michaelfotiadis.locationmanagerviewer.data.containers.MyConstants;
 import com.michaelfotiadis.locationmanagerviewer.data.containers.MyNetworkStatus;
+import com.michaelfotiadis.locationmanagerviewer.data.datastore.nmea.NmeaListenerManager;
+import com.michaelfotiadis.locationmanagerviewer.data.datastore.nmea.NmeaListenerManagerProvider;
 import com.michaelfotiadis.locationmanagerviewer.utils.AppLog;
 
 import java.util.ArrayList;
@@ -29,7 +33,7 @@ import java.util.List;
  * @author Michael Fotiadis
  * @since 07/07/2014
  */
-public class Singleton implements LocationListener, NmeaListener, GpsStatus.Listener {
+public class Singleton implements LocationListener, GpsStatus.Listener {
 
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;
@@ -46,6 +50,10 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
     private LocationData mPassiveLocationData;
     // **** Network Fields
     private MyNetworkStatus mNetworkStatus;
+
+    private final NmeaListenerManagerProvider nmeaListenerManagerProvider = new NmeaListenerManagerProvider();
+    @Nullable
+    private NmeaListenerManager nmeaListenerManager;
 
     /**
      * Singleton Constructor
@@ -231,18 +239,9 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
         notifyNetworkStateChanged();
     }
 
-    @Override
-    public void onNmeaReceived(long timestamp, String nmea) {
-
-        String[] splitNMEA = nmea.split("$");
-
-        for (String data : splitNMEA) {
-            if (data.length() > 2) {
-                mGPSLocationData.appendToNmea(data);
-            }
-        }
-
-
+    public void onNmeaReceived(String message) {
+        AppLog.d("NMEA received");
+        mGPSLocationData.appendToNmea(message);
         notifyNMEAChanged();
     }
 
@@ -319,12 +318,16 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
 
     }
 
+    @SuppressLint("MissingPermission")
     public void startCollectingLocationData() {
         AppLog.d("Attempting to Start GPS");
         // Initialise the location manager for GPS collection
         mLocationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
         mLocationManager.addGpsStatusListener(this);
-        mLocationManager.addNmeaListener(this);
+
+
+        nmeaListenerManager = nmeaListenerManagerProvider.getNmeaListenerManager(mLocationManager);
+        nmeaListenerManager.register(this::onNmeaReceived);
 
         requestGPSLocationUpdates();
         requestNetworkLocationUpdates();
@@ -337,7 +340,10 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
         if (mLocationManager != null) {
             mLocationManager.removeUpdates(this);
             mLocationManager.removeGpsStatusListener(this);
-            mLocationManager.removeNmeaListener(this);
+
+            if (nmeaListenerManager != null) {
+                nmeaListenerManager.unregister();
+            }
         }
     }
 
@@ -373,6 +379,5 @@ public class Singleton implements LocationListener, NmeaListener, GpsStatus.List
         ContentResolver contentResolver = context.getContentResolver();
         return Settings.System.getInt(contentResolver, AIRPLANE_MODE_ON, 0) != 0;
     }
-
 
 }
