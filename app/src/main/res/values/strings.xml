@@ -60,11 +60,13 @@
     <string name="version_prefix">"Version: "</string>
 
     <string name="toast_warning_permission_not_granted">Coarse location permission not granted</string>
-    <string name="message_stopping">Stopping...</string>
-    <string name="message_starting">Scanning...</string>
+    <string name="message_stopping">Stopping…</string>
+    <string name="message_starting">Scanning…</string>
     <string name="scan">Scan</string>
     <string name="stop">Stop</string>
     <string name="message_copied_to_clipboard">Copied to clipboard</string>
+    <string name="tab_text_1">Tab 1</string>
+    <string name="tab_text_2">Tab 2</string>
 
 
 </resources>
