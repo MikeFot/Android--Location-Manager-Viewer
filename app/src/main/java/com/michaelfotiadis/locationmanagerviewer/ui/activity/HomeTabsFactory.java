@@ -1,12 +1,5 @@
 package com.michaelfotiadis.locationmanagerviewer.ui.activity;
 
-import com.michaelfotiadis.locationmanagerviewer.R;
-import com.michaelfotiadis.locationmanagerviewer.ui.fragment.GpsFragment;
-import com.michaelfotiadis.locationmanagerviewer.ui.fragment.NetworkFragment;
-import com.michaelfotiadis.locationmanagerviewer.ui.fragment.NmeaFragment;
-import com.michaelfotiadis.locationmanagerviewer.ui.fragment.PassiveFragment;
-import com.michaelfotiadis.locationmanagerviewer.ui.fragment.SatelliteFragment;
-import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage;
 import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPages;
 
 /**
@@ -23,16 +16,16 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
     SmartFragmentPagerPages getPages() {
         final SmartFragmentPagerPages pages = new SmartFragmentPagerPages();
 
-        pages.add(getGpsFragment(mActivity.getString(R.string.title_section1)));
-        pages.add(getNetworkFragment(mActivity.getString(R.string.title_section2)));
-        pages.add(getPassiveFragment(mActivity.getString(R.string.title_section3)));
-        pages.add(getSatelliteFragment(mActivity.getString(R.string.title_section4)));
-        pages.add(getNmeaFragment(mActivity.getString(R.string.title_section5)));
+//        pages.add(getGpsFragment(mActivity.getString(R.string.title_section1)));
+//        pages.add(getNetworkFragment(mActivity.getString(R.string.title_section2)));
+//        pages.add(getPassiveFragment(mActivity.getString(R.string.title_section3)));
+//        pages.add(getSatelliteFragment(mActivity.getString(R.string.title_section4)));
+//        pages.add(getNmeaFragment(mActivity.getString(R.string.title_section5)));
 
         return pages;
     }
 
-    private static SmartFragmentPagerPage getGpsFragment(final String title) {
+   /* private static SmartFragmentPagerPage getGpsFragment(final String title) {
 
         return new SmartFragmentPagerPage.Builder()
                 .withNavBarTitle(title)
@@ -70,7 +63,7 @@ import com.michaelfotiadis.locationmanagerviewer.ui.pager.SmartFragmentPagerPage
                 .withNavBarTitle(title)
                 .withTabIcon(R.drawable.ic_assignment_white_24dp)
                 .withFragment(NmeaFragment.newInstance()).build();
-    }
+    }*/
 
 
 }

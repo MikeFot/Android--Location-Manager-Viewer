@@ -48,13 +48,13 @@ public class MainActivity extends BaseActivity {
 
         getMenuInflater().inflate(R.menu.main, menu);
 
-        if (!mIsScanning) {
-            menu.findItem(R.id.button_stop).setVisible(false);
-            menu.findItem(R.id.button_scan).setVisible(true);
-        } else {
-            menu.findItem(R.id.button_stop).setVisible(true);
-            menu.findItem(R.id.button_scan).setVisible(false);
-        }
+//        if (!mIsScanning) {
+//            menu.findItem(R.id.button_stop).setVisible(false);
+//            menu.findItem(R.id.button_scan).setVisible(true);
+//        } else {
+//            menu.findItem(R.id.button_stop).setVisible(true);
+//            menu.findItem(R.id.button_scan).setVisible(false);
+//        }
 
         return super.onCreateOptionsMenu(menu);
     }
@@ -63,13 +63,13 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(final MenuItem item) {
         AppLog.d("Action on " + item.getItemId());
         switch (item.getItemId()) {
-            case R.id.button_scan:
-                checkPermissions();
-
-                break;
-            case R.id.button_stop:
-                toggleScanning(false);
-                break;
+//            case R.id.button_scan:
+//                checkPermissions();
+//
+//                break;
+//            case R.id.button_stop:
+//                toggleScanning(false);
+//                break;
             case R.id.action_show_map:
                 showOnMap();
                 break;
@@ -77,7 +77,7 @@ public class MainActivity extends BaseActivity {
                 // Start a dialog showing location provider information
                 new ProviderInformationDialog().show(getSupportFragmentManager(), "Dialog");
                 break;
-            case R.id.action_settings:
+            case R.id.action_device_settings:
                 this.startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS));
                 break;
             case R.id.action_about:

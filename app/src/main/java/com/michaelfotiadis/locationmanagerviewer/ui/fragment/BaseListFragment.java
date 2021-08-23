@@ -1,6 +1,5 @@
 package com.michaelfotiadis.locationmanagerviewer.ui.fragment;
 
-import android.app.Fragment;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,11 +11,11 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 
 import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.legacy.view.ViewCompat;
 
 import com.michaelfotiadis.locationmanagerviewer.R;
 import com.michaelfotiadis.locationmanagerviewer.data.containers.MyConstants;
-import com.michaelfotiadis.locationmanagerviewer.data.datastore.Singleton;
 import com.michaelfotiadis.locationmanagerviewer.utils.AppLog;
 import com.michaelfotiadis.locationmanagerviewer.utils.MergeAdapterBuilder;
 
@@ -59,7 +58,7 @@ public abstract class BaseListFragment extends Fragment {
 
         populateMergeAdapter();
 
-        Singleton.getInstance().requestNetworkUpdate();
+        //Singleton.getInstance().requestNetworkUpdate();
         super.onResume();
     }
 
@@ -92,7 +91,7 @@ public abstract class BaseListFragment extends Fragment {
      */
     private void unregisterResponseReceivers() {
         try {
-            getActivity().unregisterReceiver(mResponseReceiver);
+            requireActivity().unregisterReceiver(mResponseReceiver);
         } catch (final Exception e) {
             AppLog.e("Response Receiver Already Unregistered. Exception : "
                     + e.getLocalizedMessage());

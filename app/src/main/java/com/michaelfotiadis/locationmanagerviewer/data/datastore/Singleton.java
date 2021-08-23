@@ -51,7 +51,6 @@ public class Singleton implements LocationListener, GpsStatus.Listener {
     // **** Network Fields
     private MyNetworkStatus mNetworkStatus;
 
-    private final NmeaListenerManagerProvider nmeaListenerManagerProvider = new NmeaListenerManagerProvider();
     @Nullable
     private NmeaListenerManager nmeaListenerManager;
 
@@ -326,7 +325,7 @@ public class Singleton implements LocationListener, GpsStatus.Listener {
         mLocationManager.addGpsStatusListener(this);
 
 
-        nmeaListenerManager = nmeaListenerManagerProvider.getNmeaListenerManager(mLocationManager);
+        nmeaListenerManager = new NmeaListenerManagerProvider(mLocationManager).getNmeaListenerManager();
         nmeaListenerManager.register(this::onNmeaReceived);
 
         requestGPSLocationUpdates();

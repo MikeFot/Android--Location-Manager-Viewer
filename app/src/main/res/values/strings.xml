@@ -12,7 +12,9 @@
     <string name="menuitem_refresh">Menu Item Refresh</string>
     <string name="action_dialog">Provider Information</string>
     <string name="action_about">About</string>
-    <string name="action_settings">Device Settings</string>
+    <string name="action_app_settings">App Details and Permissions</string>
+    <string name="action_device_settings">Device Location Settings</string>
+    <string name="action_show_licenses">View Open Source Licenses</string>
     <string name="provider_information">Provider Information</string>
     <string name="ok">OK</string>
     <string name="about">ABOUT</string>
@@ -59,7 +61,7 @@
     <string name="info_satellite_none">"No satellites found"</string>
     <string name="version_prefix">"Version: "</string>
 
-    <string name="toast_warning_permission_not_granted">Coarse location permission not granted</string>
+    <string name="toast_warning_permission_not_granted">Fine location permission not granted</string>
     <string name="message_stopping">Stopping…</string>
     <string name="message_starting">Scanning…</string>
     <string name="scan">Scan</string>
