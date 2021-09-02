@@ -44,7 +44,7 @@ public class MergeAdapterBuilder {
             AppLog.e("NULL LAYOUT");
             return;
         }
-        final TextView tvTitle = (TextView) layout.findViewById(R.id.title);
+        final TextView tvTitle = (TextView) layout.findViewById(R.id.data_title);
         tvTitle.setText(title);
         mAdapter.addView(layout);
     }
@@ -62,7 +62,7 @@ public class MergeAdapterBuilder {
             return;
         }
 
-        final TextView tvData = (TextView) layout.findViewById(R.id.data);
+        final TextView tvData = (TextView) layout.findViewById(R.id.data_content);
         tvData.setText(data);
         tvData.setOnClickListener(new View.OnClickListener() {
             @Override

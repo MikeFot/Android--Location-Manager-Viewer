@@ -1,38 +1,40 @@
 package com.michaelfotiadis.locationmanagerviewer.service
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.Intent
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.os.Binder
-import android.os.IBinder
+import android.os.*
 import androidx.lifecycle.LifecycleService
 import com.anthonycr.grant.PermissionsManager
-import com.michaelfotiadis.locationmanagerviewer.data.datastore.nmea.NmeaListenerManager
-import kotlinx.coroutines.channels.Channel
+import com.michaelfotiadis.locationmanagerviewer.location.GpsListenerWrapper
+import com.michaelfotiadis.locationmanagerviewer.location.NetworkListenerWrapper
+import com.michaelfotiadis.locationmanagerviewer.location.NmeaListenerWrapper
+import com.michaelfotiadis.locationmanagerviewer.location.PassiveListenerWrapper
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.apache.commons.collections4.queue.CircularFifoQueue
 import org.koin.android.ext.android.inject
+import org.koin.core.context.loadKoinModules
+import org.koin.core.context.unloadKoinModules
 import timber.log.Timber
+import kotlin.coroutines.CoroutineContext
 
-class LocationService : LifecycleService() {
+@ExperimentalCoroutinesApi
+class LocationService : LifecycleService(), CoroutineScope {
+
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + SupervisorJob()
 
     private val binder = LocationBinder()
-    private val locationManager: LocationManager by inject()
-    private val nmeaListenerManager: NmeaListenerManager by inject()
 
-    private val statusChannel = Channel<LocationStatus>()
+    private val gpsListenerWrapper: GpsListenerWrapper by inject()
+    private val networkListenerWrapper: NetworkListenerWrapper by inject()
+    private val passiveListenerWrapper: PassiveListenerWrapper by inject()
+    private val nmeaListenerWrapper: NmeaListenerWrapper by inject()
+
     private var scanningStatus = false
-    val statusFlow = statusChannel.receiveAsFlow()
+    val statusFlow = MutableStateFlow<LocationStatus>(LocationStatus.ScanningStopped)
 
-    sealed class LocationStatus {
-
-        object ScanningStarted : LocationStatus()
-        object ScanningStopped : LocationStatus()
-        object PermissionsNotGranted : LocationStatus()
-
-    }
+    private var updatesJob: Job? = null
 
     inner class LocationBinder : Binder() {
         fun getService(): LocationService = this@LocationService
@@ -45,9 +47,10 @@ class LocationService : LifecycleService() {
 
     override fun onCreate() {
         super.onCreate()
+        loadKoinModules(locationServiceModule)
         Timber.d("Service Created")
         scanningStatus = false
-        statusChannel.offer(LocationStatus.ScanningStopped)
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -56,7 +59,7 @@ class LocationService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        statusChannel.close()
+        unloadKoinModules(locationServiceModule)
         super.onDestroy()
         Timber.d("Service Destroyed")
     }
@@ -70,19 +73,24 @@ class LocationService : LifecycleService() {
     }
 
     fun startScanning() {
-        if (isFineLocationPermissionGranted()) {
-            scanningStatus = true
-            statusChannel.offer(LocationStatus.ScanningStarted)
-            requestLocationUpdates()
-        } else {
-            statusChannel.offer(LocationStatus.PermissionsNotGranted)
+        launch {
+            if (isFineLocationPermissionGranted()) {
+                scanningStatus = true
+                statusFlow.emit(LocationStatus.ScanningStarted)
+                requestLocationUpdates()
+            } else {
+                statusFlow.emit(LocationStatus.PermissionsNotGranted)
+            }
         }
     }
 
     fun stopScanning() {
-        scanningStatus = false
-        unregisterLocationListeners()
-        statusChannel.offer(LocationStatus.ScanningStopped)
+        launch {
+            scanningStatus = false
+            unregisterLocationListeners()
+            statusFlow.emit(LocationStatus.ScanningStopped)
+            Timber.d("Stopped scanning")
+        }
     }
 
     private fun isFineLocationPermissionGranted(): Boolean {
@@ -90,51 +98,60 @@ class LocationService : LifecycleService() {
     }
 
     private fun requestLocationUpdates() {
-        requestSourceLocationUpdates(LocationManager.GPS_PROVIDER, gpsLocationListener)
-        requestSourceLocationUpdates(LocationManager.NETWORK_PROVIDER, networkLocationListener)
-        requestSourceLocationUpdates(LocationManager.PASSIVE_PROVIDER, passiveLocationListener)
-    }
 
-    @SuppressLint("MissingPermission")
-    private fun requestSourceLocationUpdates(source: String, locationListener: LocationListener) {
-        Timber.d(
-            "Requesting $source Updates with time between updates $MIN_TIME_BW_UPDATES " +
-                    "and min distance change for updates $MIN_DISTANCE_CHANGE_FOR_UPDATES"
-        )
-        if (locationManager.allProviders.contains(source)) {
-            locationManager.requestLocationUpdates(
-                source,
-                MIN_TIME_BW_UPDATES,
-                MIN_DISTANCE_CHANGE_FOR_UPDATES,
-                locationListener
+        val nmeaBuffer: CircularFifoQueue<String> = CircularFifoQueue(NMEA_BUFFER_SIZE)
+
+        updatesJob = launch {
+
+            combine(
+                gpsListenerWrapper.registerForGpsUpdates(
+                    MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                    MIN_TIME_BW_UPDATES
+                )
+                    .catch {
+                        statusFlow.emit(LocationStatus.GpsProviderUnavailable)
+                    },
+                networkListenerWrapper.registerForNetworkUpdates(
+                    MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                    MIN_TIME_BW_UPDATES
+                )
+                    .catch {
+                        statusFlow.emit(LocationStatus.NetworkProviderUnavailable)
+                    },
+                passiveListenerWrapper.registerForPassiveUpdates(
+                    MIN_DISTANCE_CHANGE_FOR_UPDATES,
+                    MIN_TIME_BW_UPDATES
+                )
+                    .catch {
+                        statusFlow.emit(LocationStatus.PassiveProviderUnavailable)
+                    },
+                nmeaListenerWrapper.registerForNmeaUpdates()
+                    .catch {
+                        statusFlow.emit(LocationStatus.NmeaUpdatesUnavailable)
+                    },
+                transform = { gpsUpdate, networkUpdate, passiveUpdate, nmeaSentence ->
+
+                    LocationStatus.CombinedLocationUpdate(
+                        gpsLocation = gpsUpdate.location,
+                        networkLocation = networkUpdate.location,
+                        passiveLocation = passiveUpdate.location,
+                        gnssStatus = null,
+                        nmeaBuffer = nmeaBuffer.apply {
+                            if (nmeaSentence.message.isNotBlank()) {
+                                add(nmeaSentence.message)
+                            }
+                        }
+                    )
+                }
+
             )
-        } else {
-            Timber.e("$source Provider unavailable")
+                .collect(statusFlow::emit)
         }
     }
 
     private fun unregisterLocationListeners() {
-        locationManager.removeUpdates(gpsLocationListener)
-        locationManager.removeUpdates(networkLocationListener)
-        locationManager.removeUpdates(passiveLocationListener)
-    }
-
-    private val gpsLocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            Timber.d("On GPS Location Changed $location")
-        }
-    }
-
-    private val networkLocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            Timber.d("On Network Location Changed $location")
-        }
-    }
-
-    private val passiveLocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            Timber.d("On Passive Location Changed $location")
-        }
+        updatesJob?.cancel()
+        updatesJob = null
     }
 
     private companion object {
@@ -143,6 +160,8 @@ class LocationService : LifecycleService() {
 
         // The minimum time between updates in milliseconds
         const val MIN_TIME_BW_UPDATES: Long = 2000
+
+        const val NMEA_BUFFER_SIZE = 50
     }
 
 }

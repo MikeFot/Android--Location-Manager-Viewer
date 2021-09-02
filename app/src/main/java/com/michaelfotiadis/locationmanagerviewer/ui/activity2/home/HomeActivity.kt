@@ -16,43 +16,51 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
 import com.anthonycr.grant.PermissionsManager
 import com.anthonycr.grant.PermissionsResultAction
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.michaelfotiadis.locationmanagerviewer.R
 import com.michaelfotiadis.locationmanagerviewer.data.datastore.Singleton
 import com.michaelfotiadis.locationmanagerviewer.databinding.ActivityHomeBinding
 import com.michaelfotiadis.locationmanagerviewer.service.LocationService
+import com.michaelfotiadis.locationmanagerviewer.service.LocationStatus
 import com.michaelfotiadis.locationmanagerviewer.ui.activity2.home.dispatcher.IntentDispatcher
-import com.michaelfotiadis.locationmanagerviewer.ui.activity2.home.injection.homeModule
 import com.michaelfotiadis.locationmanagerviewer.ui.activity2.home.ui.DepthPageTransformer
 import com.michaelfotiadis.locationmanagerviewer.ui.activity2.home.ui.RecyclerPagerAdapter
 import com.michaelfotiadis.locationmanagerviewer.utils.AppLog
 import com.michaelfotiadis.locationmanagerviewer.utils.DialogUtils.AboutDialog
 import com.michaelfotiadis.locationmanagerviewer.utils.DialogUtils.ProviderInformationDialog
-import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
-import org.koin.core.context.loadKoinModules
-import org.koin.core.context.unloadKoinModules
+import org.koin.android.scope.AndroidScopeComponent
+import org.koin.androidx.scope.activityRetainedScope
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.parameter.parametersOf
+import org.koin.core.scope.Scope
 import timber.log.Timber
+import kotlin.coroutines.CoroutineContext
 
 
-class HomeActivity : AppCompatActivity() {
+@ExperimentalCoroutinesApi
+class HomeActivity : AppCompatActivity(), CoroutineScope, AndroidScopeComponent {
+
+    override val scope: Scope by activityRetainedScope()
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + SupervisorJob()
 
     private val intentDispatcher: IntentDispatcher by inject { parametersOf(this) }
+    private val homeViewModel: HomeViewModel by viewModel()
 
     private lateinit var binding: ActivityHomeBinding
     private var locationService: LocationService? = null
+    private var snackBar: Snackbar? = null
 
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            locationService = (service as? LocationService.LocationBinder)?.getService().apply {
-
-            }
+            locationService = (service as? LocationService.LocationBinder)?.getService()
             binding.fabProgressCircle.visibility = View.VISIBLE
-            MainScope().launch {
+            launch {
                 collectServiceStatus()
             }
         }
@@ -65,7 +73,6 @@ class HomeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loadKoinModules(homeModule)
 
         binding = ActivityHomeBinding.inflate(layoutInflater)
 
@@ -81,9 +88,11 @@ class HomeActivity : AppCompatActivity() {
         val tabs: TabLayout = binding.tabs
 
         TabLayoutMediator(tabs, viewPager) { tab, position ->
-            tab.setText(
-                pagerAdapter.getTitleResIdForPosition(position)
-            )
+            pagerAdapter.getTitleResIdForPosition(position).let { tabTitle ->
+                tab.setText(tabTitle)
+                tab.setContentDescription(tabTitle)
+            }
+            tab.setIcon(pagerAdapter.getIconResIdForPosition(position))
         }.attach()
 
         binding.fabProgressCircle.visibility = View.GONE
@@ -92,11 +101,6 @@ class HomeActivity : AppCompatActivity() {
             locationService?.toggleScanning()
         }
 
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unloadKoinModules(homeModule)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -141,6 +145,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         locationService?.stopScanning()
+        snackBar?.dismiss()
         unbindService(connection)
     }
 
@@ -148,16 +153,33 @@ class HomeActivity : AppCompatActivity() {
         locationService?.statusFlow?.collect { status ->
             Timber.d("Received Status $status")
             when (status) {
-                LocationService.LocationStatus.PermissionsNotGranted -> {
+                LocationStatus.PermissionsNotGranted -> {
                     checkPermissions()
                 }
-                LocationService.LocationStatus.ScanningStarted -> {
+                LocationStatus.ScanningStarted -> {
                     binding.fabProgressCircle.show()
                     binding.fab.setImageResource(R.drawable.ic_baseline_stop_24)
                 }
-                LocationService.LocationStatus.ScanningStopped -> {
+                LocationStatus.ScanningStopped -> {
                     binding.fabProgressCircle.hide()
                     binding.fab.setImageResource(R.drawable.ic_baseline_play_arrow_24)
+                }
+                is LocationStatus.CombinedLocationUpdate -> {
+                    Timber.d("Received Combined Location")
+                }
+                LocationStatus.GpsProviderUnavailable -> {
+
+                    Timber.w("TODO: Gps Provider Unavailable")
+                }
+                LocationStatus.NetworkProviderUnavailable -> {
+                    Timber.w("TODO: Network Provider Unavailable")
+                }
+
+                LocationStatus.NmeaUpdatesUnavailable -> {
+                    Timber.w("TODO: NMEA Provider Unavailable")
+                }
+                LocationStatus.PassiveProviderUnavailable -> {
+                    Timber.w("TODO: Passive Provider Unavailable")
                 }
             }
         }
@@ -182,11 +204,16 @@ class HomeActivity : AppCompatActivity() {
                 }
 
                 override fun onDenied(permission: String) {
-                    Toast.makeText(
-                        this@HomeActivity,
-                        getString(R.string.toast_warning_permission_not_granted),
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    snackBar = Snackbar.make(
+                        binding.homeCoordinatorLayout,
+                        R.string.toast_warning_permission_not_granted,
+                        Snackbar.LENGTH_SHORT
+                    ).apply {
+                        setAction(R.string.snackbar_action_settings) {
+                            intentDispatcher.navigateToAppDetails()
+                        }
+                        show()
+                    }
                 }
             })
     }

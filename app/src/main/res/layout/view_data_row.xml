@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/data_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/data_title"
+        style="@style/GridLayoutDataTextViewMonospace"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/data_guideline"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Latitude" />
+
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/data_guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent=".30" />
+
+    <TextView
+        android:id="@+id/data_separator"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_medium"
+        android:layout_marginEnd="@dimen/margin_medium"
+        android:text=":"
+        app:layout_constraintBottom_toBottomOf="@+id/data_title"
+        app:layout_constraintEnd_toStartOf="@+id/data_content"
+        app:layout_constraintStart_toEndOf="@+id/data_guideline"
+        app:layout_constraintTop_toTopOf="@+id/data_title" />
+
+    <TextView
+        android:id="@+id/data_content"
+        style="@style/GridLayoutDataTextViewMonospace"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/data_title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/data_separator"
+        app:layout_constraintTop_toTopOf="@+id/data_title"
+        tools:text="37.49193849314" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

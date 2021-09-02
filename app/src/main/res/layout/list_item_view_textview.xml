@@ -7,7 +7,7 @@
     android:paddingBottom="@dimen/padding_medium">
 
     <TextView
-        android:id="@+id/data"
+        android:id="@+id/data_content"
         style="@style/GridLayoutDataTextViewMonospace" />
 
 </LinearLayout>

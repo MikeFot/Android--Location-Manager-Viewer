@@ -3,6 +3,7 @@ package com.michaelfotiadis.locationmanagerviewer
 import android.app.Application
 import com.michaelfotiadis.locationmanagerviewer.data.ApplicationInitializer
 import com.michaelfotiadis.locationmanagerviewer.injection.appModule
+import com.michaelfotiadis.locationmanagerviewer.injection.homeActivityModule
 import com.michaelfotiadis.locationmanagerviewer.injection.locationModule
 import org.koin.android.ext.android.inject
 import org.koin.android.ext.koin.androidContext
@@ -23,7 +24,8 @@ class LocationApplication : Application() {
             androidContext(this@LocationApplication)
             modules(
                 appModule,
-                locationModule
+                locationModule,
+                homeActivityModule
             )
         }
 
